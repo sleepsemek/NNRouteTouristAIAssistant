@@ -39,9 +39,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.sleepsemek.nnroutetouristaiassistant.R
 import com.sleepsemek.nnroutetouristaiassistant.data.models.RouteResponse
 
 @Composable
@@ -80,7 +82,7 @@ fun TimelineSheet(
             }
         }
 
-        Spacer(Modifier.height(24.dp))
+        Spacer(Modifier.height(16.dp))
 
         LazyColumn(
             modifier = Modifier
@@ -137,7 +139,7 @@ fun TimelineItem(
                         modifier = Modifier
                             .width(2.dp)
                             .weight(1f)
-                            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.3f))
+                            .background(MaterialTheme.colorScheme.primary)
                     )
                 } else {
                     Spacer(Modifier.weight(1f))
@@ -151,22 +153,22 @@ fun TimelineItem(
                 ) {
                     when {
                         isFirst -> Icon(
-                            imageVector = Icons.Default.PlayArrow,
+                            painter = painterResource(R.drawable.baseline_directions_walk_24),
                             contentDescription = "Старт",
                             tint = MaterialTheme.colorScheme.surfaceContainerLow,
-                            modifier = Modifier.size(14.dp)
+                            modifier = Modifier.size(16.dp)
                         )
                         isLast -> Icon(
-                            imageVector = Icons.Default.Check,
+                            painter = painterResource(R.drawable.baseline_flag_24),
                             contentDescription = "Финиш",
                             tint = MaterialTheme.colorScheme.surfaceContainerLow,
-                            modifier = Modifier.size(14.dp)
+                            modifier = Modifier.size(16.dp)
                         )
                         else -> Icon(
-                            imageVector = Icons.Default.Place,
-                            contentDescription = "Финиш",
+                            painter = painterResource(R.drawable.baseline_circle_24),
+                            contentDescription = "Промежуточная точка",
                             tint = MaterialTheme.colorScheme.surfaceContainerLow,
-                            modifier = Modifier.size(14.dp)
+                            modifier = Modifier.size(23.dp)
                         )
                     }
                 }
@@ -176,7 +178,7 @@ fun TimelineItem(
                         modifier = Modifier
                             .width(2.dp)
                             .weight(1f)
-                            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.3f))
+                            .background(MaterialTheme.colorScheme.primary)
                     )
                 } else {
                     Spacer(Modifier.weight(1f))
