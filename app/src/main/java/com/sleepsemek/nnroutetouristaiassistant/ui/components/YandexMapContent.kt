@@ -165,6 +165,8 @@ private fun setupUserLocationLayer(context: Context, mapView: MapView, colorPrim
                     .setZIndex(0f)
                     .setScale(1f)
             )
+
+            view.accuracyCircle.fillColor = (colorInversePrimary and 0x99FFFFFF.toInt())
         }
 
         override fun onObjectRemoved(view: UserLocationView) {}
