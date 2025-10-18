@@ -13,17 +13,13 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Place
-import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
@@ -58,7 +54,8 @@ fun TimelineSheet(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(16.dp)
+            .padding(horizontal = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -82,14 +79,11 @@ fun TimelineSheet(
             }
         }
 
-        Spacer(Modifier.height(16.dp))
-
-        LazyColumn(
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(0.dp, 0.dp, 0.dp, 8.dp)
         ) {
-            itemsIndexed(routes) { index, route ->
+            routes.forEachIndexed { index, route ->
                 TimelineItem(
                     route = route,
                     isExpanded = expandedIndex == index,
@@ -195,7 +189,10 @@ fun TimelineItem(
                 .onGloballyPositioned { coordinates ->
                     cardHeight = coordinates.size.height
                 }
-                .padding(vertical = 6.dp)
+                .padding(
+                    top = if (isFirst) 0.dp else 6.dp,
+                    bottom = if (isLast) 0.dp else 6.dp
+                )
         ) {
             Column(
                 modifier = Modifier

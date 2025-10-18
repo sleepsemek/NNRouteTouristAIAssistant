@@ -2,10 +2,16 @@ package com.sleepsemek.nnroutetouristaiassistant.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.BottomSheetScaffoldState
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -28,11 +34,25 @@ fun ScaffoldWithBottomSheet(
 ) {
     BottomSheetScaffold(
         scaffoldState = sheetController.scaffoldState,
-        sheetContent = sheetContent,
+        sheetContent = {
+            Box(
+                Modifier
+                    .fillMaxWidth()
+                    .imePadding()
+            ) {
+                Column(
+                    Modifier
+                        .verticalScroll(rememberScrollState())
+                        .padding(bottom = 24.dp)
+                ) {
+                    sheetContent()
+                }
+            }
+        },
         sheetPeekHeight = 110.dp,
         sheetDragHandle = { BottomSheetDragHandle() },
         sheetSwipeEnabled = true,
-        sheetShape = MaterialTheme.shapes.extraLarge
+        sheetShape = MaterialTheme.shapes.extraLarge,
     ) {
         mapContent()
     }

@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material3.Button
@@ -73,7 +72,8 @@ fun RoutePlanningSheet(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp)
+            .padding(horizontal = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Text(
             text = "Планировщик маршрута",
@@ -83,46 +83,31 @@ fun RoutePlanningSheet(
                 .padding(top = 16.dp, bottom = 12.dp)
         )
 
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f, fill = false)
-                .padding(bottom = 24.dp),
+        InterestsSection(selectedInterests) { viewModel.updateSelectedInterests(it) }
+
+        TimeSelectionSection(
+            walkingTime = walkingTime,
+            onWalkingTimeChange = { viewModel.updateWalkingTime(it) },
+            useLocation = useLocation,
+            onUseLocationChange = { viewModel.updateUseLocation(it) }
+        )
+
+        Column (
+            modifier = Modifier.fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            item {
-                InterestsSection(selectedInterests) { viewModel.updateSelectedInterests(it) }
+            AnimatedVisibility(
+                visible = errorContainerVisible,
+                enter = fadeIn() + expandVertically(expandFrom = Alignment.Top),
+                exit = fadeOut() + shrinkVertically(shrinkTowards = Alignment.Bottom),
+            ) {
+                ErrorMessage(error = error.toString())
             }
 
-            item {
-                TimeSelectionSection(
-                    walkingTime = walkingTime,
-                    onWalkingTimeChange = { viewModel.updateWalkingTime(it) },
-                    useLocation = useLocation,
-                    onUseLocationChange = { viewModel.updateUseLocation(it) }
-                )
-            }
-
-            item {
-                Column (
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    AnimatedVisibility(
-                        visible = errorContainerVisible,
-                        enter = fadeIn() + expandVertically(expandFrom = Alignment.Top),
-                        exit = fadeOut() + shrinkVertically(shrinkTowards = Alignment.Bottom),
-                        modifier = Modifier.animateItem()
-                    ) {
-                        ErrorMessage(error = error.toString())
-                    }
-
-                    BuildRouteButton(
-                        viewModel = viewModel,
-                        isLoading = isLoading
-                    )
-                }
-            }
+            BuildRouteButton(
+                viewModel = viewModel,
+                isLoading = isLoading
+            )
         }
     }
 }
