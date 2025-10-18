@@ -3,6 +3,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.collectAsState
 import android.content.pm.PackageManager
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.LocalActivity
 import androidx.compose.runtime.Composable
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -45,6 +46,11 @@ fun RoutePlanningScreen(
                     )
                 }
                 is BottomSheetMode.Timeline -> {
+                    BackHandler (enabled = true) {
+                        viewModel.clearRoutes()
+                        sheetController.collapse()
+                    }
+
                     TimelineSheet(
                         sheetController = sheetController,
                         routes = uiState.routes,
