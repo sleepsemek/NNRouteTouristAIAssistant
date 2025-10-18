@@ -18,7 +18,7 @@ import androidx.compose.ui.unit.dp
 
 
 @Composable
-public fun Badge(
+fun Badge(
     icon: ImageVector?,
     text: String,
     color: Color

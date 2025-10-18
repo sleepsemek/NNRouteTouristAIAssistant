@@ -26,6 +26,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -64,8 +65,10 @@ fun RoutePlanningSheet(
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
-    var selectedInterests = uiState.selectedInterests
-    var walkingTime = uiState.walkingTime
+    val selectedInterests = uiState.selectedInterests
+    val walkingTime = uiState.walkingTime
+    val useLocation = uiState.useLocation
+    val errorContainerVisible = error != null
 
     Column(
         modifier = Modifier
@@ -92,27 +95,33 @@ fun RoutePlanningSheet(
             }
 
             item {
-                TimeSelectionSection(walkingTime) { viewModel.updateWalkingTime(it) }
-            }
-
-            item {
-                val visible = error != null
-
-                AnimatedVisibility(
-                    visible = visible,
-                    enter = fadeIn() + expandVertically(expandFrom = Alignment.Top),
-                    exit = fadeOut() + shrinkVertically(shrinkTowards = Alignment.Bottom),
-                    modifier = Modifier.animateItem()
-                ) {
-                    ErrorMessage(error = error.toString())
-                }
-            }
-
-            item {
-                BuildRouteButton(
-                    viewModel = viewModel,
-                    isLoading = isLoading
+                TimeSelectionSection(
+                    walkingTime = walkingTime,
+                    onWalkingTimeChange = { viewModel.updateWalkingTime(it) },
+                    useLocation = useLocation,
+                    onUseLocationChange = { viewModel.updateUseLocation(it) }
                 )
+            }
+
+            item {
+                Column (
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    AnimatedVisibility(
+                        visible = errorContainerVisible,
+                        enter = fadeIn() + expandVertically(expandFrom = Alignment.Top),
+                        exit = fadeOut() + shrinkVertically(shrinkTowards = Alignment.Bottom),
+                        modifier = Modifier.animateItem()
+                    ) {
+                        ErrorMessage(error = error.toString())
+                    }
+
+                    BuildRouteButton(
+                        viewModel = viewModel,
+                        isLoading = isLoading
+                    )
+                }
             }
         }
     }
@@ -225,7 +234,9 @@ private fun InterestCard(
 @Composable
 private fun TimeSelectionSection(
     walkingTime: Float,
-    onWalkingTimeChange: (Float) -> Unit
+    onWalkingTimeChange: (Float) -> Unit,
+    useLocation: Boolean,
+    onUseLocationChange: (Boolean) -> Unit
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Text(
@@ -234,7 +245,7 @@ private fun TimeSelectionSection(
             color = MaterialTheme.colorScheme.onSurface
         )
 
-        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Slider(
                 value = walkingTime,
                 onValueChange = onWalkingTimeChange,
@@ -242,11 +253,31 @@ private fun TimeSelectionSection(
                 steps = 14,
                 modifier = Modifier.fillMaxWidth(),
             )
-            Badge(
-                text = "%.1f ч".format(walkingTime),
-                color = MaterialTheme.colorScheme.primary,
-                icon = null
-            )
+            Row (
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Badge(
+                    text = "%.1f ч".format(walkingTime),
+                    color = MaterialTheme.colorScheme.primary,
+                    icon = null
+                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Text(
+                        text = "С учетом местоположения",
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Switch(
+                        checked = useLocation,
+                        onCheckedChange = onUseLocationChange
+                    )
+                }
+            }
         }
     }
 }
@@ -285,11 +316,20 @@ private fun BuildRouteButton(
         enabled = !isLoading
     ) {
         if (isLoading) {
-            CircularProgressIndicator(
-                color = MaterialTheme.colorScheme.primary,
-                strokeWidth = 2.dp,
-                modifier = Modifier.size(20.dp)
-            )
+            Row (
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                Text(
+                    text = "Думаем",
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.primary
+                )
+                CircularProgressIndicator(
+                    color = MaterialTheme.colorScheme.primary,
+                    strokeWidth = 2.dp,
+                    modifier = Modifier.size(20.dp)
+                )
+            }
         } else {
             Text(
                 text = "Построить маршрут",

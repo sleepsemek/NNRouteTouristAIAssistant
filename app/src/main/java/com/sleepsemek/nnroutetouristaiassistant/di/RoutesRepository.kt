@@ -1,6 +1,7 @@
 package com.sleepsemek.nnroutetouristaiassistant.di
 
 import com.sleepsemek.nnroutetouristaiassistant.api.RoutesApi
+import com.sleepsemek.nnroutetouristaiassistant.data.models.Coordinate
 import com.sleepsemek.nnroutetouristaiassistant.data.models.RouteRequest
 import com.sleepsemek.nnroutetouristaiassistant.data.models.RouteResponse
 
@@ -11,7 +12,7 @@ import javax.inject.Singleton
 class RoutesRepository @Inject constructor(
     private val api: RoutesApi
 ) {
-    suspend fun fetchRoutes(interests: List<String>, walkingTime: Float): List<RouteResponse> {
-        return api.getRoutes(RouteRequest(interests, walkingTime))
+    suspend fun fetchRoutes(interests: List<String>, walkingTime: Float, userLocation: Coordinate?): List<RouteResponse> {
+        return api.getRoutes(RouteRequest(interests, walkingTime, userLocation))
     }
 }

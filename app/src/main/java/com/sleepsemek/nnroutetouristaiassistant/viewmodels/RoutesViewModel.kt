@@ -2,6 +2,7 @@ package com.sleepsemek.nnroutetouristaiassistant.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.sleepsemek.nnroutetouristaiassistant.data.models.Coordinate
 import com.sleepsemek.nnroutetouristaiassistant.data.models.RouteResponse
 import com.sleepsemek.nnroutetouristaiassistant.data.ui.BottomSheetMode
 import com.sleepsemek.nnroutetouristaiassistant.data.ui.UiState
@@ -63,6 +64,10 @@ class RoutesViewModel @Inject constructor(
         _uiState.update { it.copy(walkingTime = walkingTime) }
     }
 
+    fun updateUseLocation(useLocation: Boolean) {
+        _uiState.update { it.copy(useLocation = useLocation) }
+    }
+
     fun loadPointsOfInterest() {
         viewModelScope.launch {
             val currentState = _uiState.value
@@ -75,7 +80,20 @@ class RoutesViewModel @Inject constructor(
             _uiState.update { it.copy(isLoading = true, error = null) }
             try {
                 val interests = currentState.selectedInterests.map { it.name }
-                val response = repository.fetchRoutes(interests, currentState.walkingTime)
+
+                val location = if (currentState.useLocation) {
+                    val lastLocation = LocationManagerUtils.getLastKnownLocation()?.position
+                    if (lastLocation != null) {
+                        Coordinate(lastLocation.longitude, lastLocation.latitude)
+                    } else {
+                        showError("Не удалось получить текущее местоположение")
+                        return@launch
+                    }
+                } else {
+                    null
+                }
+
+                val response = repository.fetchRoutes(interests, currentState.walkingTime, location)
 
                 _uiState.update {
                     it.copy(
@@ -87,7 +105,7 @@ class RoutesViewModel @Inject constructor(
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
-                showError(e.message ?: "Ошибка загрузки маршрутов")
+                showError("Произошла ошибка загрузки маршрутов")
             }
         }
     }
@@ -135,7 +153,7 @@ class RoutesViewModel @Inject constructor(
             override fun onMasstransitRoutesError(error: com.yandex.runtime.Error) {
                 _uiState.update {
                     it.copy(
-                        error = "Ошибка построения маршрута: ${error.javaClass.simpleName}",
+                        error = "Произошла ошибка построения маршрута",
                         isLoading = false,
                         isRouteReady = false
                     )

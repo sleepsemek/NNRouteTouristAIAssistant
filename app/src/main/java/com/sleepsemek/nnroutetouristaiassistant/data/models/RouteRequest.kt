@@ -5,5 +5,7 @@ import com.google.gson.annotations.SerializedName
 data class RouteRequest(
     val interests: List<String>,
     @SerializedName("walking_time")
-    val walkingTime: Float
+    val walkingTime: Float,
+    @SerializedName("user_location")
+    val userLocation: Coordinate?
 )

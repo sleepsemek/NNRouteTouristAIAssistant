@@ -1,5 +1,6 @@
 package com.sleepsemek.nnroutetouristaiassistant.ui.components
 
+import android.content.Context
 import android.graphics.PointF
 import androidx.activity.ComponentActivity
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -34,6 +35,7 @@ import com.yandex.mapkit.user_location.UserLocationObjectListener
 import com.yandex.mapkit.user_location.UserLocationView
 import com.yandex.runtime.image.ImageProvider
 
+
 @Composable
 fun YandexMapContent(activity: ComponentActivity, viewModel: RoutesViewModel) {
     val context = LocalContext.current
@@ -51,9 +53,7 @@ fun YandexMapContent(activity: ComponentActivity, viewModel: RoutesViewModel) {
             R.drawable.map_pin_background,
             colorPrimary,
             R.drawable.map_pin_foreground,
-            colorInversePrimary,
-            widthPx = 128,
-            heightPx = 128
+            colorInversePrimary
         )
     )
 
@@ -81,7 +81,7 @@ fun YandexMapContent(activity: ComponentActivity, viewModel: RoutesViewModel) {
         mv.map.move(CameraPosition(Point(56.3269, 44.0075), 12.0f, 0f, 0f))
         mv.map.isNightModeEnabled = isSystemInDarkTheme
         mapObjectsRef.value = mv.map.mapObjects.addCollection()
-        setupUserLocationLayer(mv)
+        setupUserLocationLayer(context, mv, colorPrimary, colorInversePrimary)
     }
 
     LaunchedEffect(mapView, uiState.routePolyline) {
@@ -127,29 +127,38 @@ fun YandexMapContent(activity: ComponentActivity, viewModel: RoutesViewModel) {
     }
 }
 
-private fun setupUserLocationLayer(mapView: MapView) {
+private fun setupUserLocationLayer(context: Context, mapView: MapView, colorPrimary: Int, colorInversePrimary: Int) {
     val mapKit = MapKitFactory.getInstance()
-
     mapKit.resetLocationManagerToDefault()
-
     val userLocationLayer = mapKit.createUserLocationLayer(mapView.mapWindow)
-    userLocationLayer.isVisible = true
-    userLocationLayer.isHeadingModeActive = true
 
     userLocationLayer.setObjectListener(object : UserLocationObjectListener {
         override fun onObjectAdded(view: UserLocationView) {
-        }
-
-        override fun onObjectRemoved(view: UserLocationView) {}
-        override fun onObjectUpdated(view: UserLocationView, p1: ObjectEvent) {
             view.arrow.setIcon(
-                ImageProvider.fromResource(mapView.context, android.R.drawable.arrow_up_float)
+                ImageProvider.fromBitmap(
+                    context.bitmapFromVectorDualColor(
+                        R.drawable.nav_compass_background,
+                        colorPrimary,
+                        R.drawable.nav_compass_foreground,
+                        colorInversePrimary,
+                    )
+                ),
+                IconStyle()
+                    .setAnchor(PointF(0.5f, 0.5f))
+                    .setScale(1f)
             )
 
             val pinIcon = view.pin.useCompositeIcon()
             pinIcon.setIcon(
                 "icon",
-                ImageProvider.fromResource(mapView.context, android.R.drawable.ic_menu_mylocation),
+                ImageProvider.fromBitmap(
+                    context.bitmapFromVectorDualColor(
+                        R.drawable.nav_background,
+                        colorPrimary,
+                        R.drawable.nav_foreground,
+                        colorInversePrimary
+                    )
+                ),
                 IconStyle()
                     .setAnchor(PointF(0.5f, 0.5f))
                     .setRotationType(RotationType.ROTATE)
@@ -157,8 +166,18 @@ private fun setupUserLocationLayer(mapView: MapView) {
                     .setScale(1f)
             )
         }
+
+        override fun onObjectRemoved(view: UserLocationView) {}
+        override fun onObjectUpdated(view: UserLocationView, p1: ObjectEvent) {}
     })
+
+    userLocationLayer.isVisible = true
+    userLocationLayer.isHeadingModeActive = true
+
 }
+
+
+
 
 
 
