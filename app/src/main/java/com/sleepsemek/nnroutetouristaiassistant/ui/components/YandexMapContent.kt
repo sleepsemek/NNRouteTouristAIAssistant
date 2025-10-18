@@ -11,6 +11,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -29,6 +30,7 @@ import com.yandex.mapkit.layers.ObjectEvent
 import com.yandex.mapkit.map.CameraPosition
 import com.yandex.mapkit.map.IconStyle
 import com.yandex.mapkit.map.MapObjectCollection
+import com.yandex.mapkit.map.PlacemarkMapObject
 import com.yandex.mapkit.map.RotationType
 import com.yandex.mapkit.mapview.MapView
 import com.yandex.mapkit.user_location.UserLocationObjectListener
@@ -40,6 +42,7 @@ import com.yandex.runtime.image.ImageProvider
 fun YandexMapContent(activity: ComponentActivity, viewModel: RoutesViewModel) {
     val context = LocalContext.current
     val mapView = remember { MapView(context) }
+    val pins = remember { mutableStateListOf<PlacemarkMapObject>() }
     val uiState by viewModel.uiState.collectAsState()
     val isSystemInDarkTheme = isSystemInDarkTheme()
     val colorPrimary = MaterialTheme.colorScheme.primary.toArgb()
@@ -91,12 +94,19 @@ fun YandexMapContent(activity: ComponentActivity, viewModel: RoutesViewModel) {
         val mapObjects = mapObjectsRef.value ?: return@LaunchedEffect
         mapObjects.clear()
 
+        pins.forEach { pin ->
+            if (pin.isValid) {
+                mapObjects.remove(pin)
+            }
+        }
+        pins.clear()
+
         if (uiState.routes.isEmpty()) return@LaunchedEffect
 
         val pinsCollection = mapObjects.addCollection()
 
         uiState.routes.forEachIndexed { index, route ->
-            pinsCollection.addPlacemark().apply {
+            val placeMark = pinsCollection.addPlacemark().apply {
                 geometry = Point(route.coordinate.latitude, route.coordinate.longitude)
                 setIcon(
                     imageProvider,
@@ -105,6 +115,13 @@ fun YandexMapContent(activity: ComponentActivity, viewModel: RoutesViewModel) {
                     }
                 )
             }
+            placeMark.addTapListener { _, _ ->
+                println("TAP")
+                viewModel.selectPointAt(index)
+                true
+            }
+
+            pins.add(placeMark)
         }
 
         val mapPolyline = uiState.routePolyline?.let { mapObjects.addPolyline(it) }

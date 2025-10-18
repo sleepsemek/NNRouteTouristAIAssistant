@@ -205,4 +205,8 @@ class RoutesViewModel @Inject constructor(
         routerSession = session
     }
 
+    fun selectPointAt(index: Int) {
+        _uiState.update { it.copy(selectedPointIndex = index) }
+    }
+
 }

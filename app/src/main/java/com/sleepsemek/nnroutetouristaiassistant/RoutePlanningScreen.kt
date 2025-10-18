@@ -63,7 +63,8 @@ fun RoutePlanningScreen(
                             if (selected != null) {
                                 viewModel.focusOnRoute(selected)
                             }
-                        }
+                        },
+                        expandedIndex = uiState.selectedPointIndex
                     )
                 }
             }

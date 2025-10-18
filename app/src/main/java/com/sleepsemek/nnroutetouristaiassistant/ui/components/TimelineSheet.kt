@@ -27,6 +27,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
@@ -47,9 +48,18 @@ fun TimelineSheet(
     sheetController: BottomSheetController,
     routes: List<RouteResponse>,
     onClose: () -> Unit,
-    onSelectStep: (Int) -> Unit
+    onSelectStep: (Int) -> Unit,
+    expandedIndex: Int?
 ) {
-    var expandedIndex by remember { mutableIntStateOf(-1) }
+    var internalExpandedIndex by remember { mutableIntStateOf(-1) }
+
+    LaunchedEffect(expandedIndex) {
+        sheetController.expand()
+
+        if (expandedIndex != null) {
+            internalExpandedIndex = expandedIndex
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -86,11 +96,11 @@ fun TimelineSheet(
             routes.forEachIndexed { index, route ->
                 TimelineItem(
                     route = route,
-                    isExpanded = expandedIndex == index,
+                    isExpanded = internalExpandedIndex == index,
                     isFirst = index == 0,
                     isLast = index == routes.size - 1,
                     onClick = {
-                        expandedIndex = if (expandedIndex == index) -1 else index
+                        internalExpandedIndex = if (internalExpandedIndex == index) -1 else index
                     },
                     onNavigate = {
                         onSelectStep(index)

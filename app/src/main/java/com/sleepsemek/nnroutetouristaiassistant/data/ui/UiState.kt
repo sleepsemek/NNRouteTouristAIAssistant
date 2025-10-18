@@ -16,7 +16,8 @@ data class UiState(
     val focusCoordinate: Coordinate? = null,
     val routePolyline: Polyline? = null,
     val isRouteReady: Boolean = false,
-    val useLocation: Boolean = true
+    val useLocation: Boolean = true,
+    val selectedPointIndex: Int? = null
 )
 
 sealed interface BottomSheetMode {
