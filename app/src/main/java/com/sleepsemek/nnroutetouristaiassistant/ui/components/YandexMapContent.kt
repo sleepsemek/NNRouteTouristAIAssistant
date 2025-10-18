@@ -1,12 +1,7 @@
 package com.sleepsemek.nnroutetouristaiassistant.ui.components
 
-import android.content.Context
-import android.graphics.Bitmap
-import android.graphics.Canvas
 import android.graphics.PointF
 import androidx.activity.ComponentActivity
-import androidx.annotation.ColorInt
-import androidx.annotation.DrawableRes
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
@@ -21,33 +16,22 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
-import androidx.core.content.ContextCompat
-import androidx.core.graphics.createBitmap
-import androidx.core.graphics.drawable.DrawableCompat
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import com.sleepsemek.nnroutetouristaiassistant.R
+import com.sleepsemek.nnroutetouristaiassistant.utils.bitmapFromVectorDualColor
 import com.sleepsemek.nnroutetouristaiassistant.viewmodels.RoutesViewModel
 import com.yandex.mapkit.Animation
 import com.yandex.mapkit.MapKitFactory
-import com.yandex.mapkit.RequestPoint
-import com.yandex.mapkit.RequestPointType
 import com.yandex.mapkit.geometry.Point
 import com.yandex.mapkit.layers.ObjectEvent
-import com.yandex.mapkit.location.LocationManagerUtils
 import com.yandex.mapkit.map.CameraPosition
 import com.yandex.mapkit.map.IconStyle
 import com.yandex.mapkit.map.MapObjectCollection
 import com.yandex.mapkit.map.RotationType
 import com.yandex.mapkit.mapview.MapView
-import com.yandex.mapkit.transport.TransportFactory
-import com.yandex.mapkit.transport.masstransit.FitnessOptions
-import com.yandex.mapkit.transport.masstransit.Session.RouteListener
-import com.yandex.mapkit.transport.masstransit.RouteOptions
-import com.yandex.mapkit.transport.masstransit.TimeOptions
 import com.yandex.mapkit.user_location.UserLocationObjectListener
 import com.yandex.mapkit.user_location.UserLocationView
-import com.yandex.runtime.Error
 import com.yandex.runtime.image.ImageProvider
 
 @Composable
@@ -57,15 +41,17 @@ fun YandexMapContent(activity: ComponentActivity, viewModel: RoutesViewModel) {
     val uiState by viewModel.uiState.collectAsState()
     val isSystemInDarkTheme = isSystemInDarkTheme()
     val colorPrimary = MaterialTheme.colorScheme.primary.toArgb()
-    val colorOnPrimaryContainer = MaterialTheme.colorScheme.onPrimaryContainer.toArgb()
+    val colorTertiary = MaterialTheme.colorScheme.tertiary.toArgb()
+    val colorInversePrimary = MaterialTheme.colorScheme.inversePrimary.toArgb()
 
     val mapObjectsRef = remember { mutableStateOf<MapObjectCollection?>(null) }
-    val router = remember { TransportFactory.getInstance().createPedestrianRouter() }
 
     val imageProvider = ImageProvider.fromBitmap(
-        context.bitmapFromVector(
-            R.drawable.baseline_location_pin_24,
+        context.bitmapFromVectorDualColor(
+            R.drawable.map_pin_background,
             colorPrimary,
+            R.drawable.map_pin_foreground,
+            colorInversePrimary,
             widthPx = 128,
             heightPx = 128
         )
@@ -98,34 +84,13 @@ fun YandexMapContent(activity: ComponentActivity, viewModel: RoutesViewModel) {
         setupUserLocationLayer(mv)
     }
 
-    LaunchedEffect(uiState.routes) {
+    LaunchedEffect(mapView, uiState.routePolyline) {
         val mapObjects = mapObjectsRef.value ?: return@LaunchedEffect
         mapObjects.clear()
 
         if (uiState.routes.isEmpty()) return@LaunchedEffect
 
         val pinsCollection = mapObjects.addCollection()
-
-        val sessionListener = object : RouteListener {
-            override fun onMasstransitRoutes(routes: List<com.yandex.mapkit.transport.masstransit.Route?>) {
-                val route = routes.firstOrNull() ?: return
-                val polyline = route.geometry
-                val mapPolyline = mapObjects.addPolyline(polyline)
-                mapPolyline.setStrokeColor(colorOnPrimaryContainer)
-            }
-
-            override fun onMasstransitRoutesError(error: Error) {
-                viewModel.showError("Ошибка построения маршрута: ${error.javaClass.simpleName}")
-            }
-        }
-
-        val userLocation: Point? = LocationManagerUtils.getLastKnownLocation()?.position
-
-        val requestPoints = mutableListOf<RequestPoint>()
-
-        userLocation?.let {
-            requestPoints.add(RequestPoint(it, RequestPointType.WAYPOINT, null, null, null))
-        }
 
         uiState.routes.forEachIndexed { index, route ->
             pinsCollection.addPlacemark().apply {
@@ -137,25 +102,12 @@ fun YandexMapContent(activity: ComponentActivity, viewModel: RoutesViewModel) {
                     }
                 )
             }
-
-            val type = when {
-                userLocation == null && index == 0 -> RequestPointType.WAYPOINT
-                index == uiState.routes.lastIndex -> RequestPointType.WAYPOINT
-                else -> RequestPointType.VIAPOINT
-            }
-
-            requestPoints.add(RequestPoint(Point(route.coordinate.latitude, route.coordinate.longitude), type, null, null, null))
         }
 
-        val timeOptions = TimeOptions().apply {
-
-        }
-
-        val fitnessOptions = FitnessOptions(false, false)
-        val routeOptions = RouteOptions(fitnessOptions)
-
-        val session = router.requestRoutes(requestPoints, timeOptions, routeOptions, sessionListener)
-        viewModel.setRouterSession(session)
+        val mapPolyline = uiState.routePolyline?.let { mapObjects.addPolyline(it) }
+        mapPolyline?.setStrokeColor(colorTertiary)
+        mapPolyline?.outlineColor = (colorInversePrimary)
+        mapPolyline?.outlineWidth = 2f
 
         val first = uiState.routes.first().coordinate
         mapView.map.move(
@@ -208,26 +160,6 @@ private fun setupUserLocationLayer(mapView: MapView) {
     })
 }
 
-fun Context.bitmapFromVector(
-    @DrawableRes drawableId: Int,
-    @ColorInt tintColor: Int? = null,
-    widthPx: Int? = null,
-    heightPx: Int? = null
-): Bitmap {
-    val drawable = ContextCompat.getDrawable(this, drawableId) ?: throw IllegalArgumentException("Drawable not found")
-
-    tintColor?.let { DrawableCompat.setTint(drawable, it) }
-
-    val bitmapWidth = widthPx ?: drawable.intrinsicWidth.takeIf { it > 0 } ?: 1
-    val bitmapHeight = heightPx ?: drawable.intrinsicHeight.takeIf { it > 0 } ?: 1
-
-    val bitmap = createBitmap(bitmapWidth, bitmapHeight)
-    val canvas = Canvas(bitmap)
-    drawable.setBounds(0, 0, canvas.width, canvas.height)
-    drawable.draw(canvas)
-
-    return bitmap
-}
 
 
 
