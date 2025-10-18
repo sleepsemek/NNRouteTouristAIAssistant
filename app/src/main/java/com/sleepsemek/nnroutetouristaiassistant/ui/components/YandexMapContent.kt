@@ -77,7 +77,10 @@ fun YandexMapContent(activity: ComponentActivity, viewModel: RoutesViewModel) {
         }
     }
 
-    AndroidView(factory = { mapView }, modifier = Modifier.fillMaxSize()) { mv ->
+    AndroidView(
+        factory = { mapView },
+        modifier = Modifier.fillMaxSize()
+    ) { mv ->
         mv.map.move(CameraPosition(Point(56.3269, 44.0075), 12.0f, 0f, 0f))
         mv.map.isNightModeEnabled = isSystemInDarkTheme
         mapObjectsRef.value = mv.map.mapObjects.addCollection()
