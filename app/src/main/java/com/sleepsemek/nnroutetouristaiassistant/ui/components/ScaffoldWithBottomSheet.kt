@@ -1,5 +1,6 @@
 package com.sleepsemek.nnroutetouristaiassistant.ui.components
 
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -7,7 +8,6 @@ import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
@@ -32,6 +32,7 @@ fun ScaffoldWithBottomSheet(
     mapContent: @Composable () -> Unit,
     sheetContent: @Composable ColumnScope.() -> Unit,
 ) {
+
     BottomSheetScaffold(
         scaffoldState = sheetController.scaffoldState,
         sheetContent = {
@@ -42,16 +43,16 @@ fun ScaffoldWithBottomSheet(
             ) {
                 Column(
                     Modifier
-                        .verticalScroll(rememberScrollState())
+                        .verticalScroll(sheetController.scrollState)
                         .padding(bottom = 24.dp)
                 ) {
                     sheetContent()
                 }
             }
         },
-        sheetPeekHeight = 110.dp,
+        sheetPeekHeight = 180.dp,
         sheetDragHandle = { BottomSheetDragHandle() },
-        sheetSwipeEnabled = true,
+        sheetSwipeEnabled = sheetController.scrollState.value == 0,
         sheetShape = MaterialTheme.shapes.extraLarge,
     ) {
         mapContent()
@@ -75,6 +76,7 @@ fun BottomSheetDragHandle() {
 @OptIn(ExperimentalMaterial3Api::class)
 class BottomSheetController(
     val scaffoldState: BottomSheetScaffoldState,
+    val scrollState: ScrollState,
     private val scope: CoroutineScope
 ) {
     fun expand() {
@@ -86,6 +88,7 @@ class BottomSheetController(
     fun collapse() {
         scope.launch {
             scaffoldState.bottomSheetState.partialExpand()
+            scrollState.scrollTo(0)
         }
     }
 
@@ -101,5 +104,6 @@ class BottomSheetController(
 fun rememberBottomSheetController(): BottomSheetController {
     val scope = rememberCoroutineScope()
     val scaffoldState = rememberBottomSheetScaffoldState()
-    return remember { BottomSheetController(scaffoldState, scope) }
+    val scrollState = rememberScrollState()
+    return remember { BottomSheetController(scaffoldState, scrollState, scope) }
 }
