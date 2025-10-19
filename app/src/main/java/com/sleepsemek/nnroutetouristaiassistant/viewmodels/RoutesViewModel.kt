@@ -1,6 +1,5 @@
 package com.sleepsemek.nnroutetouristaiassistant.viewmodels
 
-import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sleepsemek.nnroutetouristaiassistant.data.models.Coordinate
@@ -14,7 +13,6 @@ import com.yandex.mapkit.RequestPoint
 import com.yandex.mapkit.RequestPointType
 import com.yandex.mapkit.geometry.Point
 import com.yandex.mapkit.location.LocationManagerUtils
-import com.yandex.mapkit.map.PlacemarkMapObject
 import com.yandex.mapkit.transport.TransportFactory
 import com.yandex.mapkit.transport.masstransit.FitnessOptions
 import com.yandex.mapkit.transport.masstransit.PedestrianRouter
@@ -51,7 +49,7 @@ class RoutesViewModel @Inject constructor(
                 .distinctUntilChanged()
                 .collectLatest { routes ->
                     if (routes.isNotEmpty()) {
-                        buildRoute(LocationManagerUtils.getLastKnownLocation()?.position)
+                        buildRoute(if (uiState.value.useLocation) LocationManagerUtils.getLastKnownLocation()?.position else null)
                     } else {
                         cancelRoute()
                     }
