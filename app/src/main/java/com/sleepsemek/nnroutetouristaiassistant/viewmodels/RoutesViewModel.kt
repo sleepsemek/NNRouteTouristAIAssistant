@@ -1,10 +1,12 @@
 package com.sleepsemek.nnroutetouristaiassistant.viewmodels
 
+import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sleepsemek.nnroutetouristaiassistant.data.models.Coordinate
 import com.sleepsemek.nnroutetouristaiassistant.data.models.RouteResponse
 import com.sleepsemek.nnroutetouristaiassistant.data.ui.BottomSheetMode
+import com.sleepsemek.nnroutetouristaiassistant.data.ui.SelectedPoint
 import com.sleepsemek.nnroutetouristaiassistant.data.ui.UiState
 import com.sleepsemek.nnroutetouristaiassistant.di.RoutesRepository
 import com.sleepsemek.nnroutetouristaiassistant.ui.components.InterestCategory
@@ -12,6 +14,7 @@ import com.yandex.mapkit.RequestPoint
 import com.yandex.mapkit.RequestPointType
 import com.yandex.mapkit.geometry.Point
 import com.yandex.mapkit.location.LocationManagerUtils
+import com.yandex.mapkit.map.PlacemarkMapObject
 import com.yandex.mapkit.transport.TransportFactory
 import com.yandex.mapkit.transport.masstransit.FitnessOptions
 import com.yandex.mapkit.transport.masstransit.PedestrianRouter
@@ -206,7 +209,7 @@ class RoutesViewModel @Inject constructor(
     }
 
     fun selectPointAt(index: Int) {
-        _uiState.update { it.copy(selectedPointIndex = index) }
+        _uiState.update { it.copy(selectedPointIndex = SelectedPoint(index)) }
     }
 
 }

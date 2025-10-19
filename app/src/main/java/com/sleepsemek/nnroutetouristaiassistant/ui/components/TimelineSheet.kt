@@ -42,6 +42,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.sleepsemek.nnroutetouristaiassistant.R
 import com.sleepsemek.nnroutetouristaiassistant.data.models.RouteResponse
+import com.sleepsemek.nnroutetouristaiassistant.data.ui.SelectedPoint
 
 @Composable
 fun TimelineSheet(
@@ -49,7 +50,7 @@ fun TimelineSheet(
     routes: List<RouteResponse>,
     onClose: () -> Unit,
     onSelectStep: (Int) -> Unit,
-    expandedIndex: Int?
+    expandedIndex: SelectedPoint?
 ) {
     var internalExpandedIndex by remember { mutableIntStateOf(-1) }
 
@@ -57,7 +58,7 @@ fun TimelineSheet(
         sheetController.expand()
 
         if (expandedIndex != null) {
-            internalExpandedIndex = expandedIndex
+            internalExpandedIndex = expandedIndex.index
         }
     }
 
