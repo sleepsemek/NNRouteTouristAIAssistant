@@ -124,13 +124,7 @@ class RoutesViewModel @Inject constructor(
         routes.forEachIndexed { index, route ->
             val point = Point(route.coordinate.latitude, route.coordinate.longitude)
 
-            val type = when {
-                userLocation == null && index == 0 -> RequestPointType.WAYPOINT
-                index == routes.lastIndex -> RequestPointType.WAYPOINT
-                else -> RequestPointType.VIAPOINT
-            }
-
-            requestPoints.add(RequestPoint(point, type, null, null, null))
+            requestPoints.add(RequestPoint(point, RequestPointType.WAYPOINT, null, null, null))
         }
 
         val timeOptions = TimeOptions()
@@ -142,6 +136,12 @@ class RoutesViewModel @Inject constructor(
         val listener = object : RouteListener {
             override fun onMasstransitRoutes(routes: List<com.yandex.mapkit.transport.masstransit.Route?>) {
                 val route = routes.firstOrNull() ?: return
+
+                route.sections.forEach { section ->
+                    println("time: " + section.metadata.weight.time.text)
+                    println("distance: " + section.metadata.weight.walkingDistance.text)
+                }
+
                 _uiState.update {
                     it.copy(
                         routePolyline = route.geometry,

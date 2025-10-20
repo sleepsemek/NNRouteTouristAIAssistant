@@ -57,7 +57,6 @@ enum class InterestCategory(
 
 @Composable
 fun RoutePlanningSheet(
-    sheetController: BottomSheetController,
     viewModel: RoutesViewModel,
     isLoading: Boolean,
     error: String?

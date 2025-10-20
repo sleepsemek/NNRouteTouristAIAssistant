@@ -97,7 +97,8 @@ fun YandexMapContent(activity: ComponentActivity, viewModel: RoutesViewModel) {
             uiState.routes.forEach { route ->
                 val marker = collection.addPlacemark(
                     Point(route.coordinate.latitude, route.coordinate.longitude),
-                    mapPinImage
+                    mapPinImage,
+                    IconStyle().setAnchor(PointF(0.5f, 1f))
                 )
                 marker.userData = route
 

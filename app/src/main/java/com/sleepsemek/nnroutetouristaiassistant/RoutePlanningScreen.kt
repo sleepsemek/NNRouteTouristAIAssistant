@@ -39,7 +39,6 @@ fun RoutePlanningScreen(
             when (uiState.mode) {
                 is BottomSheetMode.Planner -> {
                     RoutePlanningSheet(
-                        sheetController = sheetController,
                         viewModel = viewModel,
                         isLoading = uiState.isLoading,
                         error = uiState.error
