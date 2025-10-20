@@ -38,6 +38,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
@@ -85,7 +86,10 @@ fun TimelineSheet(
                 color = MaterialTheme.colorScheme.onSurface
             )
             IconButton(
-                onClick = onClose,
+                onClick = {
+                    internalExpandedIndex = -1
+                    onClose()
+                },
                 modifier = Modifier.size(32.dp)
             ) {
                 Icon(
@@ -129,6 +133,7 @@ fun TimelineItem(
     onNavigate: () -> Unit
 ) {
     var cardHeight by remember { mutableIntStateOf(0) }
+    var barColor = MaterialTheme.colorScheme.primary
 
     Row(
         modifier = Modifier
@@ -150,7 +155,12 @@ fun TimelineItem(
                         modifier = Modifier
                             .width(2.dp)
                             .weight(1f)
-                            .background(MaterialTheme.colorScheme.primary)
+                            .drawBehind {
+                                drawRect(
+                                    color = barColor,
+                                    size = androidx.compose.ui.geometry.Size(width = size.width, height = size.height)
+                                )
+                            }
                     )
                 } else {
                     Spacer(Modifier.weight(1f))
@@ -179,7 +189,7 @@ fun TimelineItem(
                             painter = painterResource(R.drawable.baseline_circle_24),
                             contentDescription = "Промежуточная точка",
                             tint = MaterialTheme.colorScheme.surfaceContainerLow,
-                            modifier = Modifier.size(23.dp)
+                            modifier = Modifier.size(24.dp)
                         )
                     }
                 }
@@ -189,7 +199,12 @@ fun TimelineItem(
                         modifier = Modifier
                             .width(2.dp)
                             .weight(1f)
-                            .background(MaterialTheme.colorScheme.primary)
+                            .drawBehind {
+                                drawRect(
+                                    color = barColor,
+                                    size = androidx.compose.ui.geometry.Size(width = size.width, height = size.height + 100f)
+                                )
+                            }
                     )
                 } else {
                     Spacer(Modifier.weight(1f))
