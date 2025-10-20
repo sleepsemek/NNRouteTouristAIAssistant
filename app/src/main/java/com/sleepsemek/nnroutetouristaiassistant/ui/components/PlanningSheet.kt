@@ -291,7 +291,7 @@ private fun BuildRouteButton(
 ) {
     Button(
         onClick = {
-            viewModel.loadPointsOfInterest()
+            viewModel.loadAndBuildRoute()
         },
         modifier = Modifier
             .fillMaxWidth()

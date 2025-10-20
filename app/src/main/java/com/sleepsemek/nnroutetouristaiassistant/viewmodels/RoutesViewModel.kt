@@ -24,9 +24,6 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -42,21 +39,6 @@ class RoutesViewModel @Inject constructor(
     val router: PedestrianRouter = TransportFactory.getInstance().createPedestrianRouter()
     private var routerSession: Session? = null
 
-    init {
-        viewModelScope.launch {
-            uiState
-                .map { it.routes }
-                .distinctUntilChanged()
-                .collectLatest { routes ->
-                    if (routes.isNotEmpty()) {
-                        buildRoute(if (uiState.value.useLocation) LocationManagerUtils.getLastKnownLocation()?.position else null)
-                    } else {
-                        cancelRoute()
-                    }
-                }
-        }
-    }
-
     fun updateSelectedInterests(interests: Set<InterestCategory>) {
         _uiState.update { it.copy(selectedInterests = interests) }
     }
@@ -69,7 +51,7 @@ class RoutesViewModel @Inject constructor(
         _uiState.update { it.copy(useLocation = useLocation) }
     }
 
-    fun loadPointsOfInterest() {
+    fun loadAndBuildRoute() {
         viewModelScope.launch {
             val currentState = _uiState.value
 
@@ -79,103 +61,105 @@ class RoutesViewModel @Inject constructor(
             }
 
             _uiState.update { it.copy(isLoading = true, error = null) }
+
             try {
                 val interests = currentState.selectedInterests.map { it.name }
 
                 val location = if (currentState.useLocation) {
                     val lastLocation = LocationManagerUtils.getLastKnownLocation()?.position
                     if (lastLocation != null) {
-                        Coordinate(lastLocation.longitude, lastLocation.latitude)
+                        Coordinate(lastLocation.latitude, lastLocation.longitude)
                     } else {
                         showError("Не удалось получить текущее местоположение")
                         return@launch
                     }
-                } else {
-                    null
-                }
+                } else null
 
                 val response = repository.fetchRoutes(interests, currentState.walkingTime, location)
-
-                _uiState.update {
-                    it.copy(
-                        routes = response,
-                        isLoading = false,
-                        mode = BottomSheetMode.Timeline(routeId = response.firstOrNull()?.id?.toString() ?: ""),
-                        selectedRouteId = response.firstOrNull()?.id?.toString()
-                    )
+                if (response.isEmpty()) {
+                    showError("Не удалось получить маршруты")
+                    return@launch
                 }
+
+                val requestPoints = mutableListOf<RequestPoint>()
+                location?.let {
+                    requestPoints.add(RequestPoint(Point(it.latitude, it.longitude), RequestPointType.WAYPOINT, null, null, null))
+                }
+                response.forEach { route ->
+                    val point = Point(route.coordinate.latitude, route.coordinate.longitude)
+                    requestPoints.add(RequestPoint(point, RequestPointType.WAYPOINT, null, null, null))
+                }
+
+                val timeOptions = TimeOptions()
+                val fitnessOptions = FitnessOptions(false, false)
+                val routeOptions = RouteOptions(fitnessOptions)
+
+                _uiState.update { it.copy(isLoading = true) }
+
+                val listener = object : RouteListener {
+                    override fun onMasstransitRoutes(routes: List<com.yandex.mapkit.transport.masstransit.Route?>) {
+                        if (routes.isEmpty()) {
+                            _uiState.update {
+                                it.copy(
+                                    error = "Не удалось построить маршрут, проверьте ваше местоположение",
+                                    isLoading = false,
+                                    isRouteReady = false
+                                )
+                            }
+                        }
+                        val builtRoute = routes.firstOrNull() ?: return
+
+                        _uiState.update {
+                            it.copy(
+                                routes = response.mapIndexed { index, _route ->
+                                    val sectionIndex = builtRoute.sections.size - response.size + index
+                                    val section = builtRoute.sections.getOrNull(sectionIndex)
+                                    if (section != null) {
+                                        _route.copy(
+                                            time = section.metadata.weight.time.text,
+                                            distance = section.metadata.weight.walkingDistance.text
+                                        )
+                                    } else {
+                                        _route
+                                    }
+                                },
+                                routePolyline = builtRoute.geometry,
+                                isRouteReady = true,
+                                isLoading = false,
+                                mode = BottomSheetMode.Timeline(routeId = response.firstOrNull()?.id?.toString() ?: ""),
+                                focusCoordinate = response.firstOrNull()?.coordinate,
+                                error = null
+                            )
+                        }
+
+                    }
+
+                    override fun onMasstransitRoutesError(error: com.yandex.runtime.Error) {
+                        _uiState.update {
+                            it.copy(
+                                error = "Произошла ошибка построения маршрута",
+                                isLoading = false,
+                                isRouteReady = false
+                            )
+                        }
+                    }
+                }
+
+                routerSession?.cancel()
+                routerSession = router.requestRoutes(requestPoints, timeOptions, routeOptions, listener)
+
             } catch (e: Exception) {
                 e.printStackTrace()
-                showError("Произошла ошибка загрузки маршрутов")
+                showError("Произошла ошибка при построении маршрута")
             }
         }
-    }
-
-    fun buildRoute(userLocation: Point?) {
-        val routes = _uiState.value.routes
-        if (routes.isEmpty()) return
-
-        val requestPoints = mutableListOf<RequestPoint>()
-
-        userLocation?.let {
-            requestPoints.add(RequestPoint(it, RequestPointType.WAYPOINT, null, null, null))
-        }
-
-        routes.forEachIndexed { index, route ->
-            val point = Point(route.coordinate.latitude, route.coordinate.longitude)
-
-            requestPoints.add(RequestPoint(point, RequestPointType.WAYPOINT, null, null, null))
-        }
-
-        val timeOptions = TimeOptions()
-        val fitnessOptions = FitnessOptions(false, false)
-        val routeOptions = RouteOptions(fitnessOptions)
-
-        _uiState.update { it.copy(isLoading = true, error = null) }
-
-        val listener = object : RouteListener {
-            override fun onMasstransitRoutes(routes: List<com.yandex.mapkit.transport.masstransit.Route?>) {
-                val route = routes.firstOrNull() ?: return
-
-                route.sections.forEach { section ->
-                    println("time: " + section.metadata.weight.time.text)
-                    println("distance: " + section.metadata.weight.walkingDistance.text)
-                }
-
-                _uiState.update {
-                    it.copy(
-                        routePolyline = route.geometry,
-                        isRouteReady = true,
-                        isLoading = false
-                    )
-                }
-            }
-
-            override fun onMasstransitRoutesError(error: com.yandex.runtime.Error) {
-                _uiState.update {
-                    it.copy(
-                        error = "Произошла ошибка построения маршрута",
-                        isLoading = false,
-                        isRouteReady = false
-                    )
-                }
-            }
-        }
-
-        routerSession?.cancel()
-        routerSession = router.requestRoutes(requestPoints, timeOptions, routeOptions, listener)
-    }
-
-    fun cancelRoute() {
-        routerSession?.cancel()
-        routerSession = null
-        _uiState.update { it.copy(routePolyline = null, isRouteReady = false) }
     }
 
     fun showError(message: String, timeoutMs: Long = 3000L) {
         _uiState.update { it.copy(
             error = message,
-            isLoading = false
+            isLoading = false,
+            mode = BottomSheetMode.Planner
         ) }
 
         viewModelScope.launch {
@@ -191,7 +175,6 @@ class RoutesViewModel @Inject constructor(
         _uiState.update {
             it.copy(
                 routes = emptyList(),
-                selectedRouteId = null,
                 mode = BottomSheetMode.Planner
             )
         }

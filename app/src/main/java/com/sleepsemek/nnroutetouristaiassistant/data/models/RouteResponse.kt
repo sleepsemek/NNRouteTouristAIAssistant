@@ -11,6 +11,6 @@ data class RouteResponse(
     @SerializedName("category_id")
     val categoryId: String,
     val url: String,
-    val duration: Double,
-    val distance: Double
+    val time: String?,
+    val distance: String?
 )

@@ -244,25 +244,25 @@ fun TimelineItem(
                     )
                 }
 
+                Spacer(Modifier.height(16.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Badge(
+                        icon = Icons.Default.DateRange,
+                        text = route.time ?: "-",
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Badge(
+                        icon = Icons.Default.Place,
+                        text = route.distance ?: "-",
+                        color = MaterialTheme.colorScheme.secondary
+                    )
+                }
+
                 if (isExpanded) {
-                    Spacer(Modifier.height(16.dp))
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Badge(
-                            icon = Icons.Default.DateRange,
-                            text = "${route.duration} мин",
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                        Badge(
-                            icon = Icons.Default.Place,
-                            text = "${route.distance} м",
-                            color = MaterialTheme.colorScheme.secondary
-                        )
-                    }
-
                     Spacer(Modifier.height(12.dp))
 
                     Text(

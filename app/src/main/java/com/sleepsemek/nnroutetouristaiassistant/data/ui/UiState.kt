@@ -8,7 +8,6 @@ import com.yandex.mapkit.geometry.Polyline
 data class UiState(
     val mode: BottomSheetMode = BottomSheetMode.Planner,
     val routes: List<RouteResponse> = emptyList(),
-    val selectedRouteId: String? = null,
     val isLoading: Boolean = false,
     val error: String? = null,
     val selectedInterests: Set<InterestCategory> = emptySet(),

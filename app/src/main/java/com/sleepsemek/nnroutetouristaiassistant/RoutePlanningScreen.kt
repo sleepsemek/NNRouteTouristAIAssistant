@@ -6,6 +6,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.LocalActivity
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.sleepsemek.nnroutetouristaiassistant.data.models.RouteResponse
 import com.sleepsemek.nnroutetouristaiassistant.data.ui.BottomSheetMode
@@ -30,6 +31,11 @@ fun RoutePlanningScreen(
     )
     if (locationPermissions.any { activity.checkSelfPermission(it) != PackageManager.PERMISSION_GRANTED }) {
         activity.requestPermissions(locationPermissions, 101)
+    }
+
+    LaunchedEffect(uiState.error) {
+        if (uiState.error != null)
+        sheetController.expand()
     }
 
     ScaffoldWithBottomSheet(
