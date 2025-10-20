@@ -1,6 +1,10 @@
 package com.sleepsemek.nnroutetouristaiassistant.ui.components
 
-import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -39,8 +43,10 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.sleepsemek.nnroutetouristaiassistant.R
+import com.sleepsemek.nnroutetouristaiassistant.data.models.Coordinate
 import com.sleepsemek.nnroutetouristaiassistant.data.models.RouteResponse
 import com.sleepsemek.nnroutetouristaiassistant.data.ui.SelectedPoint
 
@@ -196,7 +202,6 @@ fun TimelineItem(
             shape = MaterialTheme.shapes.medium,
             modifier = Modifier
                 .weight(1f)
-                .animateContentSize()
                 .onGloballyPositioned { coordinates ->
                     cardHeight = coordinates.size.height
                 }
@@ -204,6 +209,7 @@ fun TimelineItem(
                     top = if (isFirst) 0.dp else 6.dp,
                     bottom = if (isLast) 0.dp else 6.dp
                 )
+
         ) {
             Column(
                 modifier = Modifier
@@ -262,36 +268,109 @@ fun TimelineItem(
                     )
                 }
 
-                if (isExpanded) {
-                    Spacer(Modifier.height(12.dp))
+                AnimatedVisibility(
+                    visible = isExpanded,
+                    enter = expandVertically() + fadeIn(),
+                    exit = shrinkVertically() + fadeOut()
+                ) {
+                    Column {
+                        Spacer(Modifier.height(12.dp))
 
-                    Text(
-                        text = route.description,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier.fillMaxWidth(),
-                        lineHeight = MaterialTheme.typography.bodyMedium.lineHeight * 1.2
-                    )
-
-                    Spacer(Modifier.height(16.dp))
-
-                    Button(
-                        onClick = onNavigate,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(56.dp),
-                        shape = MaterialTheme.shapes.medium,
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Place,
-                            contentDescription = null,
-                            modifier = Modifier.size(18.dp)
+                        Text(
+                            text = route.description,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier.fillMaxWidth(),
+                            lineHeight = MaterialTheme.typography.bodyMedium.lineHeight * 1.2
                         )
-                        Spacer(Modifier.width(8.dp))
-                        Text("Посмотреть на карте")
+
+                        Spacer(Modifier.height(16.dp))
+
+                        Button(
+                            onClick = onNavigate,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(56.dp),
+                            shape = MaterialTheme.shapes.medium,
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Place,
+                                contentDescription = null,
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Spacer(Modifier.width(8.dp))
+                            Text("Посмотреть на карте")
+                        }
                     }
                 }
             }
+        }
+    }
+}
+
+@Preview
+@Composable
+fun TimelinePreviewSheet() {
+    val routes = listOf(
+        RouteResponse(
+            title = "Старт",
+            address = "ул. Ленина, 1",
+            time = "10 мин",
+            distance = "0,5 км",
+            description = "Начало маршрута",
+            id = 2,
+            coordinate = Coordinate(10.0, 10.0),
+            categoryId = "none",
+            url = "none"
+        ),
+        RouteResponse(
+            title = "Промежуточная точка",
+            address = "ул. Пушкина, 12",
+            time = "15 мин",
+            distance = "1,2 км",
+            description = "Интересное место по пути",
+            id = 2,
+            coordinate = Coordinate(10.0, 10.0),
+            categoryId = "none",
+            url = "none"
+        ),
+        RouteResponse(
+            title = "Финиш",
+            address = "ул. Гагарина, 50",
+            time = "20 мин",
+            distance = "2 км",
+            description = "Конечная точка маршрута",
+            id = 2,
+            coordinate = Coordinate(10.0, 10.0),
+            categoryId = "none",
+            url = "none"
+        )
+    )
+
+    var expandedIndex by remember { mutableIntStateOf(-1) }
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+    ) {
+        Text(
+            text = "Презентация маршрута",
+            style = MaterialTheme.typography.headlineMedium,
+            color = MaterialTheme.colorScheme.onSurface
+        )
+
+        routes.forEachIndexed { index, route ->
+            TimelineItem(
+                route = route,
+                isExpanded = expandedIndex == index,
+                isFirst = index == 0,
+                isLast = index == routes.lastIndex,
+                onClick = {
+                    expandedIndex = if (expandedIndex == index) -1 else index
+                },
+                onNavigate = {}
+            )
         }
     }
 }
