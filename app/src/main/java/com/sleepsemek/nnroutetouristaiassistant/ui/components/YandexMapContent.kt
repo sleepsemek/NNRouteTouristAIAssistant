@@ -120,17 +120,18 @@ fun YandexMapContent(activity: ComponentActivity, viewModel: RoutesViewModel) {
 
     fun addPolyline() {
         val collection = mapObjectsCollectionRef.value ?: return
-        polylineRef.value?.let {
-            if (it.isValid) collection.remove(it)
-        }
-        polylineRef.value = null
+        val newGeometry = uiState.routePolyline ?: return
 
-        uiState.routePolyline?.let { polyline ->
-            val poly = collection.addPolyline(polyline)
-            poly.setStrokeColor(colorTertiary)
-            poly.outlineColor = colorInversePrimary
-            poly.outlineWidth = 2f
-            polylineRef.value = poly
+        val existingPoly = polylineRef.value
+
+        if (existingPoly != null && existingPoly.isValid) {
+            existingPoly.geometry = newGeometry
+        } else {
+            val newPoly = collection.addPolyline(newGeometry)
+            newPoly.setStrokeColor(colorTertiary)
+            newPoly.outlineColor = colorInversePrimary
+            newPoly.outlineWidth = 2f
+            polylineRef.value = newPoly
         }
     }
 
@@ -202,9 +203,9 @@ fun YandexMapContent(activity: ComponentActivity, viewModel: RoutesViewModel) {
     }
 
     LaunchedEffect(uiState.focusCoordinate) {
-        uiState.focusCoordinate?.let { coordinate ->
+        uiState.focusCoordinate?.let { focusCoordinate ->
             mapView.mapWindow.map.move(
-                CameraPosition(Point(coordinate.latitude, coordinate.longitude), 15.0f, 0f, 0f),
+                CameraPosition(Point(focusCoordinate.coordinate.latitude, focusCoordinate.coordinate.longitude), 15.0f, 0f, 0f),
                 Animation(Animation.Type.SMOOTH, 1f),
                 null
             )

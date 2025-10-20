@@ -2,29 +2,34 @@ package com.sleepsemek.nnroutetouristaiassistant.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.sleepsemek.nnroutetouristaiassistant.data.models.Coordinate
 import com.sleepsemek.nnroutetouristaiassistant.data.models.RouteResponse
 import com.sleepsemek.nnroutetouristaiassistant.data.ui.BottomSheetMode
+import com.sleepsemek.nnroutetouristaiassistant.data.ui.FocusCoordinate
 import com.sleepsemek.nnroutetouristaiassistant.data.ui.SelectedPoint
 import com.sleepsemek.nnroutetouristaiassistant.data.ui.UiState
 import com.sleepsemek.nnroutetouristaiassistant.di.RoutesRepository
 import com.sleepsemek.nnroutetouristaiassistant.ui.components.InterestCategory
 import com.yandex.mapkit.RequestPoint
 import com.yandex.mapkit.RequestPointType
+import com.yandex.mapkit.geometry.Geo
 import com.yandex.mapkit.geometry.Point
+import com.yandex.mapkit.geometry.Polyline
 import com.yandex.mapkit.location.LocationManagerUtils
 import com.yandex.mapkit.transport.TransportFactory
 import com.yandex.mapkit.transport.masstransit.FitnessOptions
 import com.yandex.mapkit.transport.masstransit.PedestrianRouter
+import com.yandex.mapkit.transport.masstransit.Route
 import com.yandex.mapkit.transport.masstransit.RouteOptions
 import com.yandex.mapkit.transport.masstransit.Session
 import com.yandex.mapkit.transport.masstransit.Session.RouteListener
 import com.yandex.mapkit.transport.masstransit.TimeOptions
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -65,11 +70,8 @@ class RoutesViewModel @Inject constructor(
             try {
                 val interests = currentState.selectedInterests.map { it.name }
 
-                val location = if (currentState.useLocation) {
-                    val lastLocation = LocationManagerUtils.getLastKnownLocation()?.position
-                    if (lastLocation != null) {
-                        Coordinate(lastLocation.latitude, lastLocation.longitude)
-                    } else {
+                val location: Point? = if (currentState.useLocation) {
+                    LocationManagerUtils.getLastKnownLocation()?.position.takeIf { it != null } ?: run { //TODO: Под вопросом проверка
                         showError("Не удалось получить текущее местоположение")
                         return@launch
                     }
@@ -97,7 +99,7 @@ class RoutesViewModel @Inject constructor(
                 _uiState.update { it.copy(isLoading = true) }
 
                 val listener = object : RouteListener {
-                    override fun onMasstransitRoutes(routes: List<com.yandex.mapkit.transport.masstransit.Route?>) {
+                    override fun onMasstransitRoutes(routes: List<Route?>) {
                         if (routes.isEmpty()) {
                             _uiState.update {
                                 it.copy(
@@ -110,26 +112,40 @@ class RoutesViewModel @Inject constructor(
 
                         _uiState.update {
                             it.copy(
-                                routes = response.mapIndexed { index, _route ->
+                                routes = response.mapIndexed { index, route ->
                                     val sectionIndex = builtRoute.sections.size - response.size + index
                                     val section = builtRoute.sections.getOrNull(sectionIndex)
                                     if (section != null) {
-                                        _route.copy(
+                                        route.copy(
                                             time = section.metadata.weight.time.text,
                                             distance = section.metadata.weight.walkingDistance.text
                                         )
                                     } else {
-                                        _route
+                                        route
                                     }
                                 },
                                 routePolyline = builtRoute.geometry,
                                 isLoading = false,
                                 mode = BottomSheetMode.Timeline(routeId = response.firstOrNull()?.id?.toString() ?: ""),
-                                focusCoordinate = response.firstOrNull()?.coordinate,
+                                focusCoordinate = response.firstOrNull()?.coordinate?.let { FocusCoordinate(it) },
                                 error = null
                             )
                         }
 
+                        viewModelScope.launch {
+                            while (isActive) {
+                                if (_uiState.value.routePolyline == null) break
+
+                                _uiState.update {
+                                    it.copy(
+                                        routePolyline = updatePolylineWithUserLocation(
+                                            LocationManagerUtils.getLastKnownLocation()?.position,
+                                            builtRoute.geometry) ?: it.routePolyline
+                                    )
+                                }
+                                delay(5000)
+                            }
+                        }
                     }
 
                     override fun onMasstransitRoutesError(error: com.yandex.runtime.Error) {
@@ -144,6 +160,8 @@ class RoutesViewModel @Inject constructor(
 
                 routerSession?.cancel()
                 routerSession = router.requestRoutes(requestPoints, timeOptions, routeOptions, listener)
+
+
 
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -160,7 +178,7 @@ class RoutesViewModel @Inject constructor(
         ) }
 
         viewModelScope.launch {
-            kotlinx.coroutines.delay(timeoutMs)
+            delay(timeoutMs)
             _uiState.update { it.copy(error = null) }
         }
     }
@@ -182,7 +200,7 @@ class RoutesViewModel @Inject constructor(
     }
 
     fun focusOnRoute(route: RouteResponse) {
-        _uiState.update { it.copy(focusCoordinate = route.coordinate) }
+        _uiState.update { it.copy(focusCoordinate = FocusCoordinate(route.coordinate)) }
     }
 
     fun setRouterSession(session: Session?) {
@@ -192,6 +210,25 @@ class RoutesViewModel @Inject constructor(
 
     fun selectPointAt(index: Int) {
         _uiState.update { it.copy(selectedPointIndex = SelectedPoint(index)) }
+    }
+
+    fun updatePolylineWithUserLocation(userLocation: Point?, route: Polyline?): Polyline? {
+        if (userLocation == null || route == null) return null
+
+        var minDistance = Double.MAX_VALUE
+        var closestIndex = 0
+
+        route.points.forEachIndexed { index, point ->
+            val distance = Geo.distance(userLocation, point)
+            if (distance < minDistance) {
+                minDistance = distance
+                closestIndex = index
+            }
+        }
+
+        if (closestIndex >= route.points.size - 1) return route
+        val newPoints = route.points.drop(closestIndex)
+        return Polyline(newPoints)
     }
 
 }
