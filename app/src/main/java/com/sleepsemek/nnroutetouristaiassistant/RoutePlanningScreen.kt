@@ -1,4 +1,5 @@
 package com.sleepsemek.nnroutetouristaiassistant
+
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.collectAsState
 import android.content.pm.PackageManager

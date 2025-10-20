@@ -64,9 +64,7 @@ fun TimelineSheet(
     LaunchedEffect(expandedIndex) {
         sheetController.expand()
 
-        if (expandedIndex != null) {
-            internalExpandedIndex = expandedIndex.index
-        }
+        internalExpandedIndex = expandedIndex?.index ?: -1
     }
 
     Column(
@@ -86,10 +84,7 @@ fun TimelineSheet(
                 color = MaterialTheme.colorScheme.onSurface
             )
             IconButton(
-                onClick = {
-                    internalExpandedIndex = -1
-                    onClose()
-                },
+                onClick = onClose,
                 modifier = Modifier.size(32.dp)
             ) {
                 Icon(

@@ -103,7 +103,6 @@ class RoutesViewModel @Inject constructor(
                                 it.copy(
                                     error = "Не удалось построить маршрут, проверьте ваше местоположение",
                                     isLoading = false,
-                                    isRouteReady = false
                                 )
                             }
                         }
@@ -124,7 +123,6 @@ class RoutesViewModel @Inject constructor(
                                     }
                                 },
                                 routePolyline = builtRoute.geometry,
-                                isRouteReady = true,
                                 isLoading = false,
                                 mode = BottomSheetMode.Timeline(routeId = response.firstOrNull()?.id?.toString() ?: ""),
                                 focusCoordinate = response.firstOrNull()?.coordinate,
@@ -139,7 +137,6 @@ class RoutesViewModel @Inject constructor(
                             it.copy(
                                 error = "Произошла ошибка построения маршрута",
                                 isLoading = false,
-                                isRouteReady = false
                             )
                         }
                     }
@@ -174,6 +171,10 @@ class RoutesViewModel @Inject constructor(
 
         _uiState.update {
             it.copy(
+                isLoading = false,
+                focusCoordinate = null,
+                routePolyline = null,
+                selectedPointIndex = null,
                 routes = emptyList(),
                 mode = BottomSheetMode.Planner
             )

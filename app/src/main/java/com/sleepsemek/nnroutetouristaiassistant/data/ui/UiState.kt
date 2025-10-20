@@ -14,7 +14,6 @@ data class UiState(
     val walkingTime: Float = 2f,
     val focusCoordinate: Coordinate? = null,
     val routePolyline: Polyline? = null,
-    val isRouteReady: Boolean = false,
     val useLocation: Boolean = true,
     val selectedPointIndex: SelectedPoint? = null
 )
