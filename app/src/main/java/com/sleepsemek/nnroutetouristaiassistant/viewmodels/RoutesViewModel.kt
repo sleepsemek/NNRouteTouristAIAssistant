@@ -3,6 +3,7 @@ package com.sleepsemek.nnroutetouristaiassistant.viewmodels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sleepsemek.nnroutetouristaiassistant.data.models.RouteResponse
+import com.sleepsemek.nnroutetouristaiassistant.data.models.coordinate
 import com.sleepsemek.nnroutetouristaiassistant.data.ui.BottomSheetMode
 import com.sleepsemek.nnroutetouristaiassistant.data.ui.FocusCoordinate
 import com.sleepsemek.nnroutetouristaiassistant.data.ui.SelectedPoint
@@ -126,7 +127,7 @@ class RoutesViewModel @Inject constructor(
                                 },
                                 routePolyline = builtRoute.geometry,
                                 isLoading = false,
-                                mode = BottomSheetMode.Timeline(routeId = response.firstOrNull()?.id?.toString() ?: ""),
+                                mode = BottomSheetMode.Timeline(routeId = response.firstOrNull()?.address?.toString() ?: ""),
                                 focusCoordinate = response.firstOrNull()?.coordinate?.let { FocusCoordinate(it) },
                                 error = null
                             )

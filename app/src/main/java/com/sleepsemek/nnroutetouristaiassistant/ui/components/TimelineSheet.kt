@@ -39,6 +39,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
@@ -153,7 +154,7 @@ fun TimelineItem(
                             .drawBehind {
                                 drawRect(
                                     color = barColor,
-                                    size = androidx.compose.ui.geometry.Size(width = size.width, height = size.height)
+                                    size = Size(width = size.width, height = size.height)
                                 )
                             }
                     )
@@ -328,10 +329,8 @@ fun TimelinePreviewSheet() {
             time = "10 мин",
             distance = "0,5 км",
             description = "Начало маршрута",
-            id = 2,
-            coordinate = Coordinate(10.0, 10.0),
-            categoryId = "none",
-            url = "none"
+            latitude = 10.0,
+            longitude = 10.0,
         ),
         RouteResponse(
             title = "Промежуточная точка",
@@ -339,10 +338,8 @@ fun TimelinePreviewSheet() {
             time = "15 мин",
             distance = "1,2 км",
             description = "Интересное место по пути",
-            id = 2,
-            coordinate = Coordinate(10.0, 10.0),
-            categoryId = "none",
-            url = "none"
+            latitude = 10.0,
+            longitude = 10.0,
         ),
         RouteResponse(
             title = "Финиш",
@@ -350,10 +347,8 @@ fun TimelinePreviewSheet() {
             time = "20 мин",
             distance = "2 км",
             description = "Конечная точка маршрута",
-            id = 2,
-            coordinate = Coordinate(10.0, 10.0),
-            categoryId = "none",
-            url = "none"
+            latitude = 10.0,
+            longitude = 10.0,
         )
     )
 

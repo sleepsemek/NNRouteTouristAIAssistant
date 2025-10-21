@@ -20,6 +20,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import com.sleepsemek.nnroutetouristaiassistant.R
+import com.sleepsemek.nnroutetouristaiassistant.data.models.coordinate
 import com.sleepsemek.nnroutetouristaiassistant.utils.bitmapFromVectorDualColor
 import com.sleepsemek.nnroutetouristaiassistant.viewmodels.RoutesViewModel
 import com.yandex.mapkit.Animation

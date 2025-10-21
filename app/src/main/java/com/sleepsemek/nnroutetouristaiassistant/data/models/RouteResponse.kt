@@ -1,16 +1,19 @@
 package com.sleepsemek.nnroutetouristaiassistant.data.models
 
-import com.google.gson.annotations.SerializedName
-
 data class RouteResponse(
-    val id: Int,
     val title: String,
     val description: String,
     val address: String,
-    val coordinate: Coordinate,
-    @SerializedName("category_id")
-    val categoryId: String,
-    val url: String,
+    val latitude: Double,
+    val longitude: Double,
     val time: String?,
     val distance: String?
+)
+
+val RouteResponse.coordinate: Coordinate
+    get() = Coordinate(latitude, longitude)
+
+data class Coordinate(
+    val latitude: Double,
+    val longitude: Double
 )

@@ -19,7 +19,7 @@ object NetworkModule {
     @Singleton
     fun provideRetrofit(): Retrofit {
         return Retrofit.Builder()
-            .baseUrl("http://192.168.1.68/")
+            .baseUrl("http://sleepserver.ru/")
             .client(provideOkHttpClient(provideHttpLoggingInterceptor()))
             .addConverterFactory(GsonConverterFactory.create())
             .build()

@@ -1,7 +1,6 @@
 package com.sleepsemek.nnroutetouristaiassistant.di
 
 import com.sleepsemek.nnroutetouristaiassistant.api.RoutesApi
-import com.sleepsemek.nnroutetouristaiassistant.data.models.Coordinate
 import com.sleepsemek.nnroutetouristaiassistant.data.models.RouteRequest
 import com.sleepsemek.nnroutetouristaiassistant.data.models.RouteResponse
 import com.yandex.mapkit.geometry.Point

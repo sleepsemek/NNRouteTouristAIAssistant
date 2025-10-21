@@ -233,7 +233,7 @@ private fun TimeSelectionSection(
             Slider(
                 value = walkingTime,
                 onValueChange = onWalkingTimeChange,
-                valueRange = 0.5f..8f,
+                valueRange = 2.5f..10f,
                 steps = 14,
                 modifier = Modifier.fillMaxWidth(),
             )
