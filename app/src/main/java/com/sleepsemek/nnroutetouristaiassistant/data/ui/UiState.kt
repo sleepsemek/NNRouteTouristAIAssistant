@@ -1,12 +1,12 @@
 package com.sleepsemek.nnroutetouristaiassistant.data.ui
 
-import com.sleepsemek.nnroutetouristaiassistant.data.models.RouteResponse
+import com.sleepsemek.nnroutetouristaiassistant.data.models.RouteResponseList
 import com.sleepsemek.nnroutetouristaiassistant.ui.components.InterestCategory
 import com.yandex.mapkit.geometry.Polyline
 
 data class UiState(
     val mode: BottomSheetMode = BottomSheetMode.Planner,
-    val routes: List<RouteResponse> = emptyList(),
+    val routes: RouteResponseList = RouteResponseList(emptyList(), ""),
     val isLoading: Boolean = false,
     val error: String? = null,
     val selectedInterests: Set<InterestCategory> = emptySet(),
