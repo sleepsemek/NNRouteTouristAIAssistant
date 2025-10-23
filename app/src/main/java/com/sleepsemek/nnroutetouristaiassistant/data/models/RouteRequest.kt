@@ -6,7 +6,7 @@ import com.yandex.mapkit.geometry.Point
 data class RouteRequest(
     val interests: List<String>,
     @SerializedName("walking_time")
-    val walkingTime: Float,
+    val walkingTime: Int,
     @SerializedName("user_location")
     val userLocation: Point?
 )

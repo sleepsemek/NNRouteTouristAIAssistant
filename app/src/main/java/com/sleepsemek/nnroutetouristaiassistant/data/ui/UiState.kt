@@ -10,7 +10,7 @@ data class UiState(
     val isLoading: Boolean = false,
     val error: String? = null,
     val selectedInterests: Set<InterestCategory> = emptySet(),
-    val walkingTime: Float = 3f,
+    val walkingTime: Int = 180,
     val focusCoordinate: FocusCoordinate? = null,
     val routePolyline: Polyline? = null,
     val useLocation: Boolean = true,

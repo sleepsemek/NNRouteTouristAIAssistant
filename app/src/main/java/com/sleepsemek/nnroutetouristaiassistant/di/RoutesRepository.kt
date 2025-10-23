@@ -12,7 +12,7 @@ import javax.inject.Singleton
 class RoutesRepository @Inject constructor(
     private val api: RoutesApi
 ) {
-    suspend fun fetchRoutes(interests: List<String>, walkingTime: Float, userLocation: Point?): RouteResponseList {
+    suspend fun fetchRoutes(interests: List<String>, walkingTime: Int, userLocation: Point?): RouteResponseList {
         return api.getRoutes(RouteRequest(interests, walkingTime, userLocation))
     }
 }

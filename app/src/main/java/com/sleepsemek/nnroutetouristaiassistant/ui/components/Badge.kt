@@ -21,10 +21,11 @@ import androidx.compose.ui.unit.dp
 fun Badge(
     icon: ImageVector?,
     text: String,
-    color: Color
+    color: Color,
+    modifier: Modifier = Modifier
 ) {
     Box (
-        modifier = Modifier
+        modifier = modifier
             .background(
                 MaterialTheme.colorScheme.secondaryContainer,
                 MaterialTheme.shapes.medium

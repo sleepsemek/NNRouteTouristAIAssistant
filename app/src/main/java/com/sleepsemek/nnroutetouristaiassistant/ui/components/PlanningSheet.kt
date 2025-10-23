@@ -12,10 +12,12 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material3.Button
@@ -217,8 +219,8 @@ private fun InterestCard(
 
 @Composable
 private fun TimeSelectionSection(
-    walkingTime: Float,
-    onWalkingTimeChange: (Float) -> Unit,
+    walkingTime: Int,
+    onWalkingTimeChange: (Int) -> Unit,
     useLocation: Boolean,
     onUseLocationChange: (Boolean) -> Unit
 ) {
@@ -230,22 +232,28 @@ private fun TimeSelectionSection(
         )
 
         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            val walkingTimeFloat = walkingTime.toFloat()
+
             Slider(
-                value = walkingTime,
-                onValueChange = onWalkingTimeChange,
-                valueRange = 2.5f..10f,
-                steps = 14,
+                value = walkingTimeFloat,
+                onValueChange = { newValue ->
+                    onWalkingTimeChange(newValue.toInt())
+                },
+                valueRange = 120f..600f, // в минутах
+                steps = ((600 - 120) / 30) - 1, // число шагов = диапазон (дельта времени) деленный на шаг без крайнего значения
                 modifier = Modifier.fillMaxWidth(),
             )
-            Row (
+
+            Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Badge(
-                    text = "%.1f ч".format(walkingTime),
+                    text = formatMinutes(walkingTime),
                     color = MaterialTheme.colorScheme.primary,
-                    icon = null
+                    icon = null,
+                    modifier = Modifier.defaultMinSize(60.dp)
                 )
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -263,6 +271,17 @@ private fun TimeSelectionSection(
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun formatMinutes(minutes: Int): String {
+    val hours = minutes / 60
+    val mins = minutes % 60
+    return when {
+        hours > 0 && mins > 0 -> "${hours}ч ${mins}м"
+        hours > 0 -> "${hours}ч"
+        else -> "${mins}м"
     }
 }
 

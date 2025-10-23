@@ -50,7 +50,7 @@ class RoutesViewModel @Inject constructor(
         _uiState.update { it.copy(selectedInterests = interests) }
     }
 
-    fun updateWalkingTime(walkingTime: Float) {
+    fun updateWalkingTime(walkingTime: Int) {
         _uiState.update { it.copy(walkingTime = walkingTime) }
     }
 
