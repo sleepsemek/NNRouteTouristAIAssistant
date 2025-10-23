@@ -170,7 +170,7 @@ class RoutesViewModel @Inject constructor(
 
             } catch (e: Exception) {
                 e.printStackTrace()
-                showError("Произошла ошибка при построении маршрута")
+                showError("Не получилось подобрать маршрут, попробуйте изменить параметры")
             }
         }
     }
