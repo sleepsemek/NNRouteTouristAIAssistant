@@ -3,6 +3,7 @@ package com.sleepsemek.nnroutetouristaiassistant.viewmodels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sleepsemek.nnroutetouristaiassistant.data.models.RouteResponse
+import com.sleepsemek.nnroutetouristaiassistant.data.models.RouteResponseList
 import com.sleepsemek.nnroutetouristaiassistant.data.models.coordinate
 import com.sleepsemek.nnroutetouristaiassistant.data.ui.BottomSheetMode
 import com.sleepsemek.nnroutetouristaiassistant.data.ui.FocusCoordinate
@@ -79,7 +80,7 @@ class RoutesViewModel @Inject constructor(
                 } else null
 
                 val response = repository.fetchRoutes(interests, currentState.walkingTime, location)
-                if (response.isEmpty()) {
+                if (response.routes.isEmpty()) {
                     showError("Не удалось получить маршруты")
                     return@launch
                 }
@@ -88,7 +89,7 @@ class RoutesViewModel @Inject constructor(
                 location?.let {
                     requestPoints.add(RequestPoint(Point(it.latitude, it.longitude), RequestPointType.WAYPOINT, null, null, null))
                 }
-                response.forEach { route ->
+                response.routes.forEach { route ->
                     val point = Point(route.coordinate.latitude, route.coordinate.longitude)
                     requestPoints.add(RequestPoint(point, RequestPointType.WAYPOINT, null, null, null))
                 }
@@ -113,22 +114,25 @@ class RoutesViewModel @Inject constructor(
 
                         _uiState.update {
                             it.copy(
-                                routes = response.mapIndexed { index, route ->
-                                    val sectionIndex = builtRoute.sections.size - response.size + index
-                                    val section = builtRoute.sections.getOrNull(sectionIndex)
-                                    if (section != null) {
-                                        route.copy(
-                                            time = section.metadata.weight.time.text,
-                                            distance = section.metadata.weight.walkingDistance.text
-                                        )
-                                    } else {
-                                        route
-                                    }
-                                },
+                                routes = it.routes.copy(
+                                    routes = response.routes.mapIndexed { index, route ->
+                                        val sectionIndex = builtRoute.sections.size - response.routes.size + index
+                                        val section = builtRoute.sections.getOrNull(sectionIndex)
+                                        if (section != null) {
+                                            route.copy(
+                                                time = section.metadata.weight.time.text,
+                                                distance = section.metadata.weight.walkingDistance.text
+                                            )
+                                        } else {
+                                            route
+                                        }
+                                    },
+                                    explanation = response.explanation
+                                ),
                                 routePolyline = builtRoute.geometry,
                                 isLoading = false,
-                                mode = BottomSheetMode.Timeline(routeId = response.firstOrNull()?.address?.toString() ?: ""),
-                                focusCoordinate = response.firstOrNull()?.coordinate?.let { FocusCoordinate(it) },
+                                mode = BottomSheetMode.Timeline(routeId = response.routes.firstOrNull()?.address?.toString() ?: ""),
+                                focusCoordinate = response.routes.firstOrNull()?.coordinate?.let { FocusCoordinate(it) },
                                 error = null
                             )
                         }
@@ -194,7 +198,7 @@ class RoutesViewModel @Inject constructor(
                 focusCoordinate = null,
                 routePolyline = null,
                 selectedPointIndex = null,
-                routes = emptyList(),
+                routes = RouteResponseList(emptyList(), ""),
                 mode = BottomSheetMode.Planner
             )
         }

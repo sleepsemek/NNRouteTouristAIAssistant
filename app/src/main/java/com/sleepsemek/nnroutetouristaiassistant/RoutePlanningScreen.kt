@@ -65,7 +65,7 @@ fun RoutePlanningScreen(
                             sheetController.collapse()
                         },
                         onSelectStep = { stepIndex ->
-                            val selected: RouteResponse? = uiState.routes.getOrNull(stepIndex)
+                            val selected: RouteResponse? = uiState.routes.routes.getOrNull(stepIndex)
                             if (selected != null) {
                                 viewModel.focusOnRoute(selected)
                             }

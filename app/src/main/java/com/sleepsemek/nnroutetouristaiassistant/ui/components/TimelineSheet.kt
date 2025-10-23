@@ -34,6 +34,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -48,23 +49,23 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.sleepsemek.nnroutetouristaiassistant.R
-import com.sleepsemek.nnroutetouristaiassistant.data.models.Coordinate
 import com.sleepsemek.nnroutetouristaiassistant.data.models.RouteResponse
+import com.sleepsemek.nnroutetouristaiassistant.data.models.RouteResponseList
 import com.sleepsemek.nnroutetouristaiassistant.data.ui.SelectedPoint
 
 @Composable
 fun TimelineSheet(
     sheetController: BottomSheetController,
-    routes: List<RouteResponse>,
+    routes: RouteResponseList,
     onClose: () -> Unit,
     onSelectStep: (Int) -> Unit,
     expandedIndex: SelectedPoint?
 ) {
     var internalExpandedIndex by remember { mutableIntStateOf(-1) }
+    var isExplanationExpanded by remember { mutableStateOf(false) }
 
     LaunchedEffect(expandedIndex) {
         sheetController.expand()
-
         internalExpandedIndex = expandedIndex?.index ?: -1
     }
 
@@ -72,10 +73,11 @@ fun TimelineSheet(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth()
+                .padding(bottom = 16.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -96,16 +98,76 @@ fun TimelineSheet(
             }
         }
 
+        if (routes.explanation.isNotBlank()) {
+            Card(
+                onClick = { isExplanationExpanded = !isExplanationExpanded },
+                shape = MaterialTheme.shapes.medium,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp)
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Column(
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Text(
+                                text = "О маршруте",
+                                style = MaterialTheme.typography.titleMedium,
+                                color = MaterialTheme.colorScheme.onSurface,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                            Text(
+                                text = "Общее описание и объяснение выбора точек",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+
+                        Icon(
+                            imageVector = if (isExplanationExpanded)
+                                Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+
+                    AnimatedVisibility(
+                        visible = isExplanationExpanded,
+                        enter = expandVertically() + fadeIn(),
+                        exit = shrinkVertically() + fadeOut()
+                    ) {
+                        Column {
+                            Spacer(Modifier.height(12.dp))
+                            Text(
+                                text = routes.explanation,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurface,
+                                modifier = Modifier.fillMaxWidth(),
+                                lineHeight = MaterialTheme.typography.bodyMedium.lineHeight * 1.2
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
+            modifier = Modifier.fillMaxWidth()
         ) {
-            routes.forEachIndexed { index, route ->
+            routes.routes.forEachIndexed { index, route ->
                 TimelineItem(
                     route = route,
                     isExpanded = internalExpandedIndex == index,
                     isFirst = index == 0,
-                    isLast = index == routes.size - 1,
+                    isLast = index == routes.routes.size - 1,
                     onClick = {
                         internalExpandedIndex = if (internalExpandedIndex == index) -1 else index
                     },
@@ -129,11 +191,10 @@ fun TimelineItem(
     onNavigate: () -> Unit
 ) {
     var cardHeight by remember { mutableIntStateOf(0) }
-    var barColor = MaterialTheme.colorScheme.primary
+    val barColor = MaterialTheme.colorScheme.primary
 
     Row(
-        modifier = Modifier
-            .fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Box(
@@ -198,7 +259,7 @@ fun TimelineItem(
                             .drawBehind {
                                 drawRect(
                                     color = barColor,
-                                    size = androidx.compose.ui.geometry.Size(width = size.width, height = size.height + 100f)
+                                    size = Size(width = size.width, height = size.height + 100f)
                                 )
                             }
                     )
@@ -220,7 +281,6 @@ fun TimelineItem(
                     top = if (isFirst) 0.dp else 6.dp,
                     bottom = if (isLast) 0.dp else 6.dp
                 )
-
         ) {
             Column(
                 modifier = Modifier
@@ -234,8 +294,7 @@ fun TimelineItem(
                 ) {
                     Column(
                         verticalArrangement = Arrangement.spacedBy(6.dp),
-                        modifier = Modifier
-                            .weight(1f)
+                        modifier = Modifier.weight(1f)
                     ) {
                         Text(
                             text = route.title,
@@ -322,34 +381,37 @@ fun TimelineItem(
 @Preview
 @Composable
 fun TimelinePreviewSheet() {
-    val routes = listOf(
-        RouteResponse(
-            title = "Старт",
-            address = "ул. Ленина, 1",
-            time = "10 мин",
-            distance = "0,5 км",
-            description = "Начало маршрута",
-            latitude = 10.0,
-            longitude = 10.0,
+    val routes = RouteResponseList(
+        routes = listOf(
+            RouteResponse(
+                title = "Старт",
+                address = "ул. Ленина, 1",
+                time = "10 мин",
+                distance = "0,5 км",
+                description = "Начало маршрута",
+                latitude = 10.0,
+                longitude = 10.0,
+            ),
+            RouteResponse(
+                title = "Промежуточная точка",
+                address = "ул. Пушкина, 12",
+                time = "15 мин",
+                distance = "1,2 км",
+                description = "Интересное место по пути",
+                latitude = 10.0,
+                longitude = 10.0,
+            ),
+            RouteResponse(
+                title = "Финиш",
+                address = "ул. Гагарина, 50",
+                time = "20 мин",
+                distance = "2 км",
+                description = "Конечная точка маршрута",
+                latitude = 10.0,
+                longitude = 10.0,
+            )
         ),
-        RouteResponse(
-            title = "Промежуточная точка",
-            address = "ул. Пушкина, 12",
-            time = "15 мин",
-            distance = "1,2 км",
-            description = "Интересное место по пути",
-            latitude = 10.0,
-            longitude = 10.0,
-        ),
-        RouteResponse(
-            title = "Финиш",
-            address = "ул. Гагарина, 50",
-            time = "20 мин",
-            distance = "2 км",
-            description = "Конечная точка маршрута",
-            latitude = 10.0,
-            longitude = 10.0,
-        )
+        explanation = "Этот маршрут проведет вас по основным достопримечательностям исторического центра города. Начните от главной площади, затем посетите старинный парк и завершите маршрут у набережной. Общая продолжительность около 45 минут, маршрут подходит для пешей прогулки."
     )
 
     var expandedIndex by remember { mutableIntStateOf(-1) }
@@ -365,12 +427,57 @@ fun TimelinePreviewSheet() {
             color = MaterialTheme.colorScheme.onSurface
         )
 
-        routes.forEachIndexed { index, route ->
+        Spacer(Modifier.height(16.dp))
+
+        Card(
+            onClick = {},
+            shape = MaterialTheme.shapes.medium,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text(
+                            text = "Об маршруте",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        Text(
+                            text = "Общее описание и рекомендации",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+
+                    Icon(
+                        imageVector = Icons.Default.KeyboardArrowDown,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+            }
+        }
+
+        Spacer(Modifier.height(12.dp))
+
+        routes.routes.forEachIndexed { index, route ->
             TimelineItem(
                 route = route,
                 isExpanded = expandedIndex == index,
                 isFirst = index == 0,
-                isLast = index == routes.lastIndex,
+                isLast = index == routes.routes.lastIndex,
                 onClick = {
                     expandedIndex = if (expandedIndex == index) -1 else index
                 },
@@ -379,4 +486,3 @@ fun TimelinePreviewSheet() {
         }
     }
 }
-

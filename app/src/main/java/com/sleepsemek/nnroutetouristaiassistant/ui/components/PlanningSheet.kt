@@ -45,14 +45,14 @@ enum class InterestCategory(
     val displayName: String,
     val backgroundImage: Int
 ) {
-    STREET_ART("Стрит-арт", R.drawable.street_art_bg),
-    HISTORY("История", R.drawable.history_bg),
-    COFFEE("Кофейни", R.drawable.coffee_bg),
-    PANORAMAS("Панорамы", R.drawable.panorama_bg),
+    URBAN_ART("Уличное искусство", R.drawable.street_art_bg),
+    LIBRARIES("Библиотеки", R.drawable.libraries_bg),
+    MAKETS("Диорамы", R.drawable.dioramas_bg),
+    MONUMENTS_SCULPTURES("Памятники", R.drawable.statues_bg),
     ARCHITECTURE("Архитектура", R.drawable.architecture_bg),
-    PARKS("Парки", R.drawable.parks_bg),
-    SHOPPING("Шоппинг", R.drawable.shopping_bg),
-    FOOD("Еда", R.drawable.food_bg),
+    RELIGIOUS_SITES("Храмы и соборы", R.drawable.religion_bg),
+    STREETS_SQUARES("Улицы и площади", R.drawable.streets_bg),
+    PARKS_EMBANKMENTS("Парки и набережные", R.drawable.parks_bg),
 }
 
 @Composable
@@ -79,7 +79,7 @@ fun RoutePlanningSheet(
             style = MaterialTheme.typography.headlineMedium,
             color = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier
-                .padding(top = 16.dp, bottom = 12.dp)
+                .padding(top = 16.dp, bottom = 6.dp)
         )
 
         InterestsSection(selectedInterests) { viewModel.updateSelectedInterests(it) }

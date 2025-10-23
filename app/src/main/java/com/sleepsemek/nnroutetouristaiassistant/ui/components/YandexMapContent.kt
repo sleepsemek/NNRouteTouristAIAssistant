@@ -94,8 +94,8 @@ fun YandexMapContent(activity: ComponentActivity, viewModel: RoutesViewModel) {
         markerList.clear()
         markerTapListeners.clear()
 
-        if (uiState.routes.isNotEmpty()) {
-            uiState.routes.forEach { route ->
+        if (uiState.routes.routes.isNotEmpty()) {
+            uiState.routes.routes.forEach { route ->
                 val marker = collection.addPlacemark(
                     Point(route.coordinate.latitude, route.coordinate.longitude),
                     mapPinImage,
@@ -104,7 +104,7 @@ fun YandexMapContent(activity: ComponentActivity, viewModel: RoutesViewModel) {
                 marker.userData = route
 
                 val listener = MapObjectTapListener { _, _ ->
-                    val index = uiState.routes.indexOf(route)
+                    val index = uiState.routes.routes.indexOf(route)
                     if (index != -1) {
                         viewModel.selectPointAt(index)
                         true
