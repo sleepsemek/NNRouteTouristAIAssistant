@@ -100,7 +100,7 @@ fun TimelineSheet(
         if (routes.explanation.isNotBlank()) {
             Card(
                 onClick = { isExplanationExpanded = !isExplanationExpanded },
-                shape = MaterialTheme.shapes.medium,
+                shape = MaterialTheme.shapes.large,
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column(
@@ -275,7 +275,7 @@ fun TimelineItem(
 
         Card(
             onClick = onClick,
-            shape = MaterialTheme.shapes.medium,
+            shape = MaterialTheme.shapes.large,
             modifier = Modifier
                 .weight(1f)
                 .onGloballyPositioned { coordinates ->
