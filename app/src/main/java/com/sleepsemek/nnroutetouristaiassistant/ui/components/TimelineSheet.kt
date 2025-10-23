@@ -46,7 +46,6 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.sleepsemek.nnroutetouristaiassistant.R
 import com.sleepsemek.nnroutetouristaiassistant.data.models.RouteResponse
@@ -115,7 +114,8 @@ fun TimelineSheet(
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Column(
-                            modifier = Modifier.weight(1f)
+                            modifier = Modifier.weight(1f),
+                            verticalArrangement = Arrangement.spacedBy(6.dp),
                         ) {
                             Text(
                                 text = "О маршруте",
@@ -146,13 +146,17 @@ fun TimelineSheet(
                     ) {
                         Column {
                             Spacer(Modifier.height(12.dp))
-                            Text(
-                                text = routes.explanation,
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurface,
-                                modifier = Modifier.fillMaxWidth(),
-                                lineHeight = MaterialTheme.typography.bodyMedium.lineHeight * 1.2
+                            MarkdownText(
+                                markdown = routes.explanation,
+                                modifier = Modifier.fillMaxWidth()
                             )
+//                            Text(
+//                                text = routes.explanation,
+//                                style = MaterialTheme.typography.bodyMedium,
+//                                color = MaterialTheme.colorScheme.onSurface,
+//                                modifier = Modifier.fillMaxWidth(),
+//                                lineHeight = MaterialTheme.typography.bodyMedium.lineHeight * 1.2
+//                            )
                         }
                     }
                 }
@@ -374,115 +378,6 @@ fun TimelineItem(
                     }
                 }
             }
-        }
-    }
-}
-
-@Preview
-@Composable
-fun TimelinePreviewSheet() {
-    val routes = RouteResponseList(
-        routes = listOf(
-            RouteResponse(
-                title = "Старт",
-                address = "ул. Ленина, 1",
-                time = "10 мин",
-                distance = "0,5 км",
-                description = "Начало маршрута",
-                latitude = 10.0,
-                longitude = 10.0,
-            ),
-            RouteResponse(
-                title = "Промежуточная точка",
-                address = "ул. Пушкина, 12",
-                time = "15 мин",
-                distance = "1,2 км",
-                description = "Интересное место по пути",
-                latitude = 10.0,
-                longitude = 10.0,
-            ),
-            RouteResponse(
-                title = "Финиш",
-                address = "ул. Гагарина, 50",
-                time = "20 мин",
-                distance = "2 км",
-                description = "Конечная точка маршрута",
-                latitude = 10.0,
-                longitude = 10.0,
-            )
-        ),
-        explanation = "Этот маршрут проведет вас по основным достопримечательностям исторического центра города. Начните от главной площади, затем посетите старинный парк и завершите маршрут у набережной. Общая продолжительность около 45 минут, маршрут подходит для пешей прогулки."
-    )
-
-    var expandedIndex by remember { mutableIntStateOf(-1) }
-
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp),
-    ) {
-        Text(
-            text = "Презентация маршрута",
-            style = MaterialTheme.typography.headlineMedium,
-            color = MaterialTheme.colorScheme.onSurface
-        )
-
-        Spacer(Modifier.height(16.dp))
-
-        Card(
-            onClick = {},
-            shape = MaterialTheme.shapes.medium,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp)
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Column(
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        Text(
-                            text = "Об маршруте",
-                            style = MaterialTheme.typography.titleMedium,
-                            color = MaterialTheme.colorScheme.onSurface,
-                            fontWeight = FontWeight.SemiBold
-                        )
-                        Text(
-                            text = "Общее описание и рекомендации",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-
-                    Icon(
-                        imageVector = Icons.Default.KeyboardArrowDown,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.size(20.dp)
-                    )
-                }
-            }
-        }
-
-        Spacer(Modifier.height(12.dp))
-
-        routes.routes.forEachIndexed { index, route ->
-            TimelineItem(
-                route = route,
-                isExpanded = expandedIndex == index,
-                isFirst = index == 0,
-                isLast = index == routes.routes.lastIndex,
-                onClick = {
-                    expandedIndex = if (expandedIndex == index) -1 else index
-                },
-                onNavigate = {}
-            )
         }
     }
 }
