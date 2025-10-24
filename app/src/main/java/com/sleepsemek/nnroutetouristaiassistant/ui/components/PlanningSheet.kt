@@ -17,7 +17,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material3.Button
@@ -61,9 +60,11 @@ enum class InterestCategory(
 fun RoutePlanningSheet(
     viewModel: RoutesViewModel,
     isLoading: Boolean,
-    error: String?
+    error: String?,
+    hasLocationPermission: Boolean
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    viewModel.updateUseLocation(hasLocationPermission)
 
     val selectedInterests = uiState.selectedInterests
     val walkingTime = uiState.walkingTime
@@ -89,6 +90,7 @@ fun RoutePlanningSheet(
         TimeSelectionSection(
             walkingTime = walkingTime,
             onWalkingTimeChange = { viewModel.updateWalkingTime(it) },
+            hasLocationPermission = hasLocationPermission,
             useLocation = useLocation,
             onUseLocationChange = { viewModel.updateUseLocation(it) }
         )
@@ -222,7 +224,8 @@ private fun TimeSelectionSection(
     walkingTime: Int,
     onWalkingTimeChange: (Int) -> Unit,
     useLocation: Boolean,
-    onUseLocationChange: (Boolean) -> Unit
+    onUseLocationChange: (Boolean) -> Unit,
+    hasLocationPermission: Boolean
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Text(
@@ -262,11 +265,15 @@ private fun TimeSelectionSection(
                     Text(
                         text = "С учетом местоположения",
                         style = MaterialTheme.typography.labelLarge,
-                        color = MaterialTheme.colorScheme.onSurface
+                        color = if (hasLocationPermission)
+                            MaterialTheme.colorScheme.onSurface
+                        else
+                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
                     )
                     Switch(
-                        checked = useLocation,
-                        onCheckedChange = onUseLocationChange
+                        checked = useLocation && hasLocationPermission,
+                        onCheckedChange = { if (hasLocationPermission) onUseLocationChange(it) },
+                        enabled = hasLocationPermission
                     )
                 }
             }

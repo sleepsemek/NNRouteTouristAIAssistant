@@ -30,13 +30,17 @@ fun RoutePlanningScreen(
         android.Manifest.permission.ACCESS_FINE_LOCATION,
         android.Manifest.permission.ACCESS_COARSE_LOCATION
     )
-    if (locationPermissions.any { activity.checkSelfPermission(it) != PackageManager.PERMISSION_GRANTED }) {
+
+    val hasLocationPermission = locationPermissions.all {
+        activity.checkSelfPermission(it) == PackageManager.PERMISSION_GRANTED
+    }
+
+    if (!hasLocationPermission) {
         activity.requestPermissions(locationPermissions, 101)
     }
 
     LaunchedEffect(uiState.error) {
-        if (uiState.error != null)
-        sheetController.expand()
+        if (uiState.error != null) sheetController.expand()
     }
 
     ScaffoldWithBottomSheet(
@@ -48,7 +52,8 @@ fun RoutePlanningScreen(
                     RoutePlanningSheet(
                         viewModel = viewModel,
                         isLoading = uiState.isLoading,
-                        error = uiState.error
+                        error = uiState.error,
+                        hasLocationPermission = hasLocationPermission
                     )
                 }
                 is BottomSheetMode.Timeline -> {
