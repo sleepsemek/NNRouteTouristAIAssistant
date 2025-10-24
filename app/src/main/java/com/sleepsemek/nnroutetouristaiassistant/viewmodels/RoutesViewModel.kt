@@ -137,6 +137,8 @@ class RoutesViewModel @Inject constructor(
                             )
                         }
 
+                        if (!_uiState.value.useLocation) return
+
                         viewModelScope.launch {
                             while (isActive) {
                                 if (_uiState.value.routePolyline == null) break
