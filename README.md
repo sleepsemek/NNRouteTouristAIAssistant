@@ -1,8 +1,19 @@
 # NNRouteTouristAssistant  
-**AI-помощник туриста для Нижнего Новгорода**
+## AI-помощник туриста для Нижнего Новгорода
 
 NNRouteTouristAssistant - нативное Android приложение, которое помогает туристу составить и пройти персональный маршрут прогулки по городу.  
 Приложение использует **Yandex MapKit** [Условия использования](https://yandex.ru/legal/maps_api/) для отображения карты и построения маршрутов, а также собственный серверный API для рекомендации точек интереса на основе предпочтений пользователя.
+
+## Ссылки
+
+### Backend репозиторий проекта
+> **[Перейти к репозиторию →](https://github.com/SergeyBoRss/GorkyMapsApi/tree/add-direction)**
+
+### Презентация проекта
+> **[Открыть презентацию →](https://disk.yandex.ru/d/0nZqsUHVAUjw-Q)**
+
+### Инструкция по запуску
+> Скачайте [APK](https://github.com/sleepsemek/NNRouteTouristAIAssistant/releases/tag/v1.0.0-rc.1) → Установите и запустите → Разрешите доступ к местоположению → Стройте маршруты и наслаждайтесь 
 
 ---
 <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 10px;">
